@@ -1,0 +1,218 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ stock.name }} ({{ stock.symbol }})</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <form [formGroup]="alertForm" (ngSubmit)="onSubmit()">
+    <!-- Alert Type Selection -->
+    <ion-list>
+      <ion-item>
+        <ion-label>Alert Type</ion-label>
+        <ion-segment formControlName="alert_type">
+          <ion-segment-button value="PRICE">
+            <ion-label>Price Target</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="PERCENT_CHANGE">
+            <ion-label>Percentage Change</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="INDICATOR_CHAIN">
+            <ion-label>Indicator Chain</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </ion-item>
+    </ion-list>
+
+    <!-- Price Target Alert Fields -->
+    <ng-container *ngIf="alertForm.get('alert_type')?.value === 'PRICE'">
+      <ion-list>
+        <ion-item>
+          <ion-label position="floating">Target Price</ion-label>
+          <ion-input type="number" formControlName="target_price" required></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label>Condition</ion-label>
+          <ion-select formControlName="condition" required>
+            <ion-select-option value="GT">Greater Than</ion-select-option>
+            <ion-select-option value="LT">Less Than</ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-item>
+          <ion-label>Check Interval (Minutes)</ion-label>
+          <ion-select formControlName="check_interval" required>
+            <ion-select-option *ngFor="let interval of checkIntervals" [value]="interval.value">
+              {{ interval.label }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+      </ion-list>
+    </ng-container>
+
+    <!-- Percentage Change Alert Fields -->
+    <ng-container *ngIf="alertForm.get('alert_type')?.value === 'PERCENT_CHANGE'">
+      <ion-item>
+        <ion-label>Lookback Period</ion-label>
+        <ion-select formControlName="lookback_period">
+          <ion-select-option value="5Min">Every 5 Minutes</ion-select-option>
+          <ion-select-option value="15Min">Every 15 Minutes</ion-select-option>
+          <ion-select-option value="30Min">Every 30 Minutes</ion-select-option>
+          <ion-select-option value="60Min">Every Hour</ion-select-option>
+          <ion-select-option value="1D">Once a Day</ion-select-option>
+          <ion-select-option value="1W">1 Week</ion-select-option>
+          <ion-select-option value="1M">1 Month</ion-select-option>
+          <ion-select-option value="3M">3 Months</ion-select-option>
+          <ion-select-option value="CUSTOM">Custom</ion-select-option>
+        </ion-select>
+      </ion-item>
+      <!-- Custom Lookback Days (Visible only if lookback_period is 'CUSTOM') -->
+      <ng-container *ngIf="alertForm.get('lookback_period')?.value === 'CUSTOM'">
+        <ion-item>
+          <ion-label position="floating">Custom Lookback Days</ion-label>
+          <ion-input formControlName="custom_lookback_days" type="number"></ion-input>
+        </ion-item>
+      </ng-container>
+      <!-- Direction -->
+      <ion-item>
+        <ion-label>Direction</ion-label>
+        <ion-segment formControlName="direction">
+          <ion-segment-button value="UP">
+            <ion-label>Up</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="DOWN">
+            <ion-label>Down</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </ion-item>
+      <!-- Percentage Change -->
+      <ion-item>
+        <ion-label position="floating">Percentage Change (%)</ion-label>
+        <ion-input formControlName="percentage_change" type="number"></ion-input>
+      </ion-item>
+      <!-- Check Interval -->
+      <ion-item>
+        <ion-label>Check Interval (Minutes)</ion-label>
+        <ion-select formControlName="check_interval" required>
+          <ion-select-option *ngFor="let interval of checkIntervals" [value]="interval.value">
+            {{ interval.label }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+    </ng-container>
+
+    <!-- Indicator Chain Alert Fields -->
+    <ng-container *ngIf="alertForm.get('alert_type')?.value === 'INDICATOR_CHAIN'">
+      <div formArrayName="conditions">
+        <div *ngFor="let condition of conditions.controls; let i = index">
+          <div [formGroupName]="i">
+            <!-- Indicator Selection -->
+            <ion-item>
+              <ion-label>Indicator</ion-label>
+              <ion-select formControlName="indicator" (ionChange)="onIndicatorChange($event, i)">
+                <ion-select-option *ngFor="let indicator of indicators" [value]="indicator.id">
+                  {{ indicator.name }}
+                </ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <!-- Indicator Line Selection -->
+            <ion-item>
+              <ion-label>Indicator Line</ion-label>
+              <ion-select formControlName="indicator_line" required>
+                <ion-select-option *ngFor="let line of indicatorLines[i]" [value]="line.id">
+                  {{ line.name }}
+                </ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <!-- Indicator Timeframe -->
+            <ion-item>
+              <ion-label>Indicator Timeframe</ion-label>
+              <ion-select formControlName="indicator_timeframe" required>
+                <ion-select-option value="1MIN">1 Minute</ion-select-option>
+                <ion-select-option value="5MIN">5 Minutes</ion-select-option>
+                <ion-select-option value="15MIN">15 Minutes</ion-select-option>
+                <ion-select-option value="1H">1 Hour</ion-select-option>
+                <ion-select-option value="1D">1 Day</ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <!-- Condition Operator -->
+            <ion-item>
+              <ion-label>Operator</ion-label>
+              <ion-select formControlName="condition_operator">
+                <ion-select-option value="CROSS_ABOVE">Crosses Above</ion-select-option>
+                <ion-select-option value="CROSS_BELOW">Crosses Below</ion-select-option>
+                <ion-select-option value="GT">></ion-select-option>
+                <ion-select-option value="LT"><</ion-select-option>
+                <ion-select-option value="EQ">=</ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <!-- Value Type -->
+            <ion-item>
+              <ion-label>Value Type</ion-label>
+              <ion-select formControlName="value_type" required>
+                <ion-select-option value="NUMBER">Number</ion-select-option>
+                <ion-select-option value="PRICE">Current Price</ion-select-option>
+                <ion-select-option value="INDICATOR_LINE">Indicator Line</ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <!-- Value Fields Based on Value Type -->
+            <!-- For NUMBER -->
+            <div *ngIf="condition.get('value_type')?.value === 'NUMBER'">
+              <ion-item>
+                <ion-label position="stacked">Value Number</ion-label>
+                <ion-input formControlName="value_number" type="number" required></ion-input>
+              </ion-item>
+            </div>
+            <!-- For INDICATOR_LINE -->
+            <div *ngIf="condition.get('value_type')?.value === 'INDICATOR_LINE'">
+              <!-- Value Indicator Selection -->
+              <ion-item>
+                <ion-label position="stacked">Value Indicator</ion-label>
+                <ion-select formControlName="value_indicator" (ionChange)="onValueIndicatorChange($event, i)" required>
+                  <ion-select-option *ngFor="let ind of indicators" [value]="ind.id">
+                    {{ ind.name }}
+                  </ion-select-option>
+                </ion-select>
+              </ion-item>
+
+              <!-- Value Indicator Line Selection -->
+              <ion-item *ngIf="valueIndicatorLines[i] && valueIndicatorLines[i].length > 0">
+                <ion-label position="stacked">Value Indicator Line</ion-label>
+                <ion-select formControlName="value_indicator_line" required>
+                  <ion-select-option *ngFor="let line of valueIndicatorLines[i]" [value]="line.id">
+                    {{ line.name }}
+                  </ion-select-option>
+                </ion-select>
+              </ion-item>
+
+              <!-- Value Timeframe -->
+              <ion-item>
+                <ion-label>Value Timeframe</ion-label>
+                <ion-select formControlName="value_timeframe" required>
+                  <ion-select-option value="1MIN">1 Minute</ion-select-option>
+                  <ion-select-option value="5MIN">5 Minutes</ion-select-option>
+                  <ion-select-option value="15MIN">15 Minutes</ion-select-option>
+                  <ion-select-option value="1H">1 Hour</ion-select-option>
+                  <ion-select-option value="1D">1 Day</ion-select-option>
+                </ion-select>
+              </ion-item>
+            </div>
+
+            <!-- Remove Condition Button -->
+            <ion-button color="danger" (click)="removeCondition(i)">Remove Condition</ion-button>
+          </div>
+        </div>
+
+        <!-- Add Condition Button -->
+        <ion-button (click)="addCondition()" [disabled]="conditions.length >= 5">Add Condition</ion-button>
+      </div>
+    </ng-container>
+
+    <!-- Submit Button -->
+    <ion-button expand="full" type="submit" [disabled]="!alertForm.valid">Create Alert</ion-button>
+  </form>
+</ion-content>

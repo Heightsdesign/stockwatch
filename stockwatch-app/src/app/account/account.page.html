@@ -1,0 +1,57 @@
+<ion-header>
+  <app-navbar></app-navbar>
+  <ion-toolbar color="primary">
+    <ion-title>Account Settings</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-item>
+      <ion-label position="stacked">Username</ion-label>
+      <ion-input [(ngModel)]="user.username" readonly></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Email</ion-label>
+      <ion-input [(ngModel)]="user.email" type="email"></ion-input>
+    </ion-item>
+
+     <ion-item>
+      <ion-label>Country</ion-label>
+      <ion-select [(ngModel)]="selectedCountry" (ionChange)="updatePhonePrefix()">
+        <ion-select-option *ngFor="let country of countries" [value]="country">
+          {{ country.name }}
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Phone Number</ion-label>
+      <ion-input
+        type="tel"
+        [(ngModel)]="user.phone_number"
+        [placeholder]="phonePrefix"
+        maxlength="15">
+      </ion-input>
+    </ion-item>
+
+    <ion-item-divider>
+      <ion-label>Notification Preferences</ion-label>
+    </ion-item-divider>
+
+    <ion-item>
+      <ion-label>Email Notifications</ion-label>
+      <ion-toggle [(ngModel)]="user.receive_email_notifications"></ion-toggle>
+    </ion-item>
+    <ion-item>
+      <ion-label>SMS Notifications</ion-label>
+      <ion-toggle [(ngModel)]="user.receive_sms_notifications"></ion-toggle>
+    </ion-item>
+    <ion-item>
+      <ion-label>Push Notifications</ion-label>
+      <ion-toggle [(ngModel)]="user.receive_push_notifications"></ion-toggle>
+    </ion-item>
+  </ion-list>
+
+  <ion-button expand="full" (click)="updateUserProfile()">Save Changes</ion-button>
+</ion-content>

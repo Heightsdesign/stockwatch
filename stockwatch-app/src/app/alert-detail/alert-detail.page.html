@@ -1,0 +1,49 @@
+<!-- src/app/alert-detail/alert-detail.page.html -->
+
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Alert Detail</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content *ngIf="alert">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>{{ alert.stock_details?.symbol }} - {{ alert.stock_details?.name }}</ion-card-title>
+      <ion-card-subtitle>{{ alert.alert_type | titlecase }} Alert</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <!-- Price Target Alert -->
+      <ng-container *ngIf="alert.price_target_alert">
+        <p>Target Price: {{ alert.price_target_alert.target_price }}</p>
+      </ng-container>
+
+      <!-- Percentage Change Alert -->
+      <ng-container *ngIf="alert.percentage_change_alert">
+        <p>
+          Direction: {{ alert.percentage_change_alert.direction }}<br />
+          Percentage Change: {{ alert.percentage_change_alert.percentage_change }}%<br />
+          Lookback Period: {{ getLookbackPeriod(alert.percentage_change_alert) }}
+        </p>
+      </ng-container>
+
+      <!-- Indicator Chain Alert -->
+      <ng-container *ngIf="alert.indicator_chain_alert">
+        <p>Indicator Conditions:</p>
+        <ul>
+          <li *ngFor="let condition of alert.indicator_chain_alert.conditions">
+            Position {{ condition.position_in_chain }}:
+            {{ condition.indicator }} {{ condition.condition_operator }} {{ condition.value }}
+          </li>
+        </ul>
+      </ng-container>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-button expand="full" color="primary" (click)="editAlert()">
+    Edit Alert
+  </ion-button>
+  <ion-button expand="full" color="danger" (click)="confirmDeleteAlert()">
+    Delete Alert
+  </ion-button>
+</ion-content>

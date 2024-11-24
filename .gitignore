@@ -1,0 +1,5 @@
+../stockwatch_env/
+stockwatch/.env
+__pycache__/
+twilio_recovery_code.txt
+to_del.py

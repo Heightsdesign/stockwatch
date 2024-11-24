@@ -1,0 +1,56 @@
+<app-navbar></app-navbar>
+<ion-content>
+  <!-- Search Bar -->
+  <ion-searchbar [(ngModel)]="searchTerm" (ionInput)="filterStocks()"></ion-searchbar>
+
+  <!-- User's Stocks with Alerts -->
+  <ion-list>
+    <ion-item *ngFor="let alert of userAlerts" (click)="goToAlertDetail(alert)">
+      <ion-label>
+
+        <h2>{{ alert.stock_details.symbol }} - {{ alert.stock_details.name }}</h2>
+        <h3>{{ alert.alert_type | titlecase }} Alert</h3>
+        <!-- Price Target Alert -->
+        <ng-container *ngIf="alert.price_target_alert">
+          <p>Target Price: {{ alert.price_target_alert.target_price }}</p>
+          <p>Condition: {{ alert.price_target_alert.condition }}</p>
+          <p>Interval: {{ alert.price_target_alert.check_interval }} Minutes</p>
+        </ng-container>
+
+        <!-- Percentage Change Alert -->
+        <ng-container *ngIf="alert.percentage_change_alert">
+          <p>
+            Direction: {{ alert.percentage_change_alert.direction }}<br />
+            Percentage Change: {{ alert.percentage_change_alert.percentage_change }}%<br />
+            Lookback Period: {{ getLookbackPeriod(alert.percentage_change_alert) }}<br />
+            Interval : {{ alert.percentage_change_alert.check_interval }} Minutes
+          </p>
+        </ng-container>
+
+        <!-- Indicator Chain Alert -->
+        <ng-container *ngIf="alert.indicator_chain_alert">
+          <p>Indicators Used:</p>
+          <ul>
+            <li *ngFor="let condition of alert.indicator_chain_alert.conditions">
+              {{ condition.indicator }}
+            </li>
+          </ul>
+        </ng-container>
+        <div class="style-1">
+          <div class="status-indicator" [ngClass]="{'active': alert.is_active, 'inactive': !alert.is_active}"></div>
+          Active
+        </div>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+  <!-- Search Results -->
+  <ion-list *ngIf="searchTerm && filteredStocks.length > 0">
+    <ion-list-header>
+      <ion-label>Search Results</ion-label>
+    </ion-list-header>
+    <ion-item *ngFor="let stock of filteredStocks" (click)="goToStockDetails(stock)">
+      <ion-label>{{ stock.name }} ({{ stock.symbol }})</ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>

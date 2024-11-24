@@ -1,0 +1,5 @@
+[
+  {"name": "United States", "iso2": "us", "dialCode": "+1"},
+  {"name": "Canada", "iso2": "ca", "dialCode": "+1"},
+  {"name": "United Kingdom", "iso2": "gb", "dialCode": "+44"}
+]

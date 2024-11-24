@@ -1,0 +1,20 @@
+<!-- src/app/navbar/navbar.component.html -->
+
+<ion-header>
+  <ion-toolbar color="primary">
+    <!-- Logo on the left -->
+    <ion-title>
+      <img src="assets/icon/stockwatch-logo-2-white.png" alt="Logo" style="height: 50px; vertical-align: middle;">
+    </ion-title>
+
+    <!-- Links on the right -->
+    <ion-buttons slot="end">
+      <ion-button [routerLink]="['/home']">Dashboard</ion-button>
+      <ion-button [routerLink]="['/account']">Account</ion-button>
+      <ion-button (click)="logout()">
+        <ion-icon name="log-out-outline"></ion-icon>
+        Logout
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>

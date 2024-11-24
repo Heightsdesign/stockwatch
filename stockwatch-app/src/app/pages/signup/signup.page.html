@@ -1,0 +1,37 @@
+<ion-content class="ion-padding">
+
+  <div class="presentation">
+    <h1>Create an Account</h1>
+    <p>Join StockWatch to monitor stock prices and set custom alerts.</p>
+  </div>
+
+  <form [formGroup]="signupForm" (ngSubmit)="onSignup()">
+    <ion-item>
+      <ion-label position="floating">Username</ion-label>
+      <ion-input type="text" formControlName="username" required></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="floating">Email</ion-label>
+      <ion-input type="email" formControlName="email" required></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="floating">Password</ion-label>
+      <ion-input type="password" formControlName="password1" required></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="floating">Confirm Password</ion-label>
+      <ion-input type="password" formControlName="password2" required></ion-input>
+    </ion-item>
+    <ion-button expand="block" type="submit" [disabled]="!signupForm.valid">
+      Sign Up
+    </ion-button>
+  </form>
+
+  <div class="login-link">
+    <p>
+      Already have an account?
+      <a [routerLink]="['/login']">Log in here</a>
+    </p>
+  </div>
+
+</ion-content>
