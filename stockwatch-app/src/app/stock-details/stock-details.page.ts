@@ -1,21 +1,33 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ApiService } from '../services/api.service';
 import { AlertController, LoadingController } from '@ionic/angular';
 import { Observable } from 'rxjs';
+
+interface IndicatorParameter {
+  name: string;
+  display_name: string;
+  param_type: string;
+  required: boolean;
+  default_value?: any;
+  choices?: string[];
+}
+
 
 @Component({
   selector: 'app-stock-details',
   templateUrl: './stock-details.page.html',
   styleUrls: ['./stock-details.page.scss'],
 })
+
 export class StockDetailsPage implements OnInit {
   stock = { symbol: '', name: '' };
   indicators: any[] = [];
   indicatorLines: any[][] = []; // For each condition, we have a list of indicator lines
   alertForm!: FormGroup;
   valueIndicatorLines: any[][] = [];
+  indicatorParameters: { [key: number]: any[] } = {};
 
   // **Added:** Define check interval options
   checkIntervals = [
@@ -111,6 +123,7 @@ export class StockDetailsPage implements OnInit {
       value_indicator: [''],
       value_indicator_line: [''],
       value_timeframe: [''],
+      parameters: this.fb.group({}),
     });
 
     // Set up value_type change listener
@@ -133,32 +146,66 @@ export class StockDetailsPage implements OnInit {
     this.indicatorLines.splice(index, 1);
   }
 
-onIndicatorChange(event: any, conditionIndex: number) {
-  const indicatorId = event.detail.value;
-  console.log(`Indicator changed for condition ${conditionIndex}, indicatorId: ${indicatorId}`);
-  this.apiService.getIndicatorLinesByIndicatorId(indicatorId).subscribe((lines) => {
-    console.log(`Received lines for indicatorId ${indicatorId}:`, lines);
-    this.indicatorLines[conditionIndex] = lines;
-  });
-}
+  onIndicatorChange(event: any, conditionIndex: number) {
+    const indicatorName = event.detail.value;
+    console.log(`Indicator changed for condition ${conditionIndex}, indicatorName: ${indicatorName}`);
 
-getIndicatorLines(indicatorId: number): any[] {
-  const indicator = this.indicators.find((ind) => ind.id === indicatorId);
-  return indicator ? indicator.lines : [];
-}
+    const indicator = this.indicators.find((ind) => ind.name === indicatorName);
 
-onValueIndicatorChange(event: any, conditionIndex: number) {
-  const indicatorId = event.detail.value;
-  console.log(`Value Indicator changed for condition ${conditionIndex}, indicatorId: ${indicatorId}`);
+    // Declare conditionGroup once
+    const conditionGroup = this.conditions.at(conditionIndex) as FormGroup;
 
-  this.apiService.getIndicatorLinesByIndicatorId(indicatorId).subscribe((lines: any[]) => {
-    console.log(`Received value indicator lines for indicatorId ${indicatorId}:`, lines);
-    if (!this.valueIndicatorLines) {
-      this.valueIndicatorLines = [];
+    if (indicator) {
+      // Set indicator lines
+      this.indicatorLines[conditionIndex] = indicator.lines;
+
+      // Initialize parameter controls
+      const parameters = indicator.parameters || [];
+
+      // Create a FormGroup for parameters
+      const parametersGroup = this.fb.group({});
+      parameters.forEach((param: any) => {
+        parametersGroup.addControl(
+          param.name,
+          new FormControl(
+            param.default_value || '', // Use default value if available
+            param.required ? Validators.required : [] // Add Validators if required
+          )
+        );
+      });
+      // Set the 'parameters' FormGroup in the condition group
+      conditionGroup.setControl('parameters', parametersGroup);
+
+      // Store parameters for the template
+      this.indicatorParameters[conditionIndex] = parameters;
+    } else {
+      // Handle case where indicator is not found
+      this.indicatorLines[conditionIndex] = [];
+
+      // Remove the 'parameters' FormGroup if it exists
+      if (conditionGroup.contains('parameters')) {
+        conditionGroup.removeControl('parameters');
+      }
+      this.indicatorParameters[conditionIndex] = [];
     }
-    this.valueIndicatorLines[conditionIndex] = lines;
-  });
-}
+  }
+
+  onValueIndicatorChange(event: any, conditionIndex: number) {
+    const indicatorName = event.detail.value;
+    console.log(`Value Indicator changed for condition ${conditionIndex}, indicatorName: ${indicatorName}`);
+
+    const indicator = this.indicators.find((ind) => ind.name === indicatorName);
+    if (indicator) {
+      if (!this.valueIndicatorLines) {
+        this.valueIndicatorLines = [];
+      }
+      this.valueIndicatorLines[conditionIndex] = indicator.lines;
+    } else {
+      if (this.valueIndicatorLines) {
+        this.valueIndicatorLines[conditionIndex] = [];
+      }
+    }
+  }
 
   onAlertTypeChange(alertType: string) {
     // Reset validators for relevant controls
@@ -306,7 +353,7 @@ onValueIndicatorChange(event: any, conditionIndex: number) {
     );
   }
 
-  prepareAlertData() {
+    prepareAlertData() {
     const formValues = this.alertForm.value;
     const stockSymbol = this.stock.symbol;
 
@@ -330,12 +377,13 @@ onValueIndicatorChange(event: any, conditionIndex: number) {
           percentage_change: formValues.percentage_change,
           direction: formValues.direction,
           lookback_period: formValues.lookback_period,
-          custom_lookback_days: formValues.lookback_period === 'CUSTOM' ? formValues.custom_lookback_days : null,
+          custom_lookback_days:
+            formValues.lookback_period === 'CUSTOM' ? formValues.custom_lookback_days : null,
         };
       case 'INDICATOR_CHAIN':
         return {
           ...alert,
-          conditions: formValues.conditions.map((condition: any) => {
+          conditions: formValues.conditions.map((condition: any, index: number) => {
             const conditionData: any = {
               position_in_chain: condition.position_in_chain,
               indicator: condition.indicator,
@@ -347,13 +395,39 @@ onValueIndicatorChange(event: any, conditionIndex: number) {
 
             // Include value fields based on value_type
             if (condition.value_type === 'NUMBER') {
-              conditionData.value_number = condition.value_number;
+              conditionData.value_number = parseFloat(condition.value_number);
             } else if (condition.value_type === 'INDICATOR_LINE') {
               conditionData.value_indicator = condition.value_indicator;
               conditionData.value_indicator_line = condition.value_indicator_line;
               conditionData.value_timeframe = condition.value_timeframe;
             }
             // For 'PRICE', no additional value fields are needed
+
+            // Convert indicator parameters to correct data types
+            const parameterValues = condition.parameters || {};
+            const parameterDefinitions = this.indicatorParameters[index] || [];
+
+            const convertedParameters: { [key: string]: any } = {};
+            parameterDefinitions.forEach((paramDef: IndicatorParameter) => {
+              const paramName = paramDef.name;
+              let value = parameterValues[paramName];
+
+              // Convert value based on param_type
+              if (paramDef.param_type === 'int') {
+                convertedParameters[paramName] = parseInt(value, 10);
+              } else if (paramDef.param_type === 'float') {
+                convertedParameters[paramName] = parseFloat(value);
+              } else if (paramDef.param_type === 'string') {
+                convertedParameters[paramName] = value;
+              } else if (paramDef.param_type === 'choice') {
+                convertedParameters[paramName] = value;
+              } else {
+                // Default to string if type is unknown
+                convertedParameters[paramName] = value;
+              }
+            });
+
+            conditionData.indicator_parameters = convertedParameters;
 
             return conditionData;
           }),

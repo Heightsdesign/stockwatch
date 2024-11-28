@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings  # Import settings to access AUTH_USER_MODEL
 from django.core.exceptions import ValidationError
+from django.db.models import JSONField
 
 
 class Stock(models.Model):
@@ -86,6 +87,38 @@ class PercentageChangeAlert(models.Model):
         super().save(*args, **kwargs)
 
 
+class IndicatorDefinition(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    display_name = models.CharField(max_length=100)
+    description = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return self.display_name
+
+class IndicatorParameter(models.Model):
+    PARAMETER_TYPE_CHOICES = [
+        ('int', 'Integer'),
+        ('float', 'Float'),
+        ('string', 'String'),
+        ('choice', 'Choice'),
+    ]
+
+    indicator = models.ForeignKey(
+        IndicatorDefinition,
+        on_delete=models.CASCADE,
+        related_name='parameters'
+    )
+    name = models.CharField(max_length=100)
+    display_name = models.CharField(max_length=100)
+    param_type = models.CharField(max_length=20, choices=PARAMETER_TYPE_CHOICES)
+    required = models.BooleanField(default=True)
+    default_value = models.CharField(max_length=100, null=True, blank=True)
+    choices = JSONField(null=True, blank=True)  # For parameters with predefined choices
+
+    def __str__(self):
+        return f"{self.indicator.display_name} - {self.display_name}"
+
+
 class Indicator(models.Model):
     name = models.CharField(max_length=50, unique=True)
     lines = models.ManyToManyField('IndicatorLine', related_name='indicators')
@@ -93,12 +126,19 @@ class Indicator(models.Model):
     def __str__(self):
         return self.name
 
-
 class IndicatorLine(models.Model):
-    name = models.CharField(max_length=50)
+    indicator = models.ForeignKey(
+        IndicatorDefinition,
+        on_delete=models.CASCADE,
+        related_name='lines',
+        null=True,  # Allow null values
+        blank=True
+    )
+    name = models.CharField(max_length=100)
+    display_name = models.CharField(max_length=100, default='Line')
 
     def __str__(self):
-        return self.name
+        return f"{self.indicator.display_name if self.indicator else 'No Indicator'} - {self.display_name}"
 
 
 class IndicatorChainAlert(models.Model):
@@ -146,7 +186,11 @@ class IndicatorCondition(models.Model):
         related_name='conditions'
     )
     # Main indicator details
-    indicator = models.CharField(max_length=50)
+    indicator = models.ForeignKey(
+        IndicatorDefinition,
+        on_delete=models.CASCADE,
+        related_name='conditions'
+    )
     indicator_line = models.CharField(max_length=50, null=True, blank=True)
     indicator_timeframe = models.CharField(max_length=10, choices=TIMEFRAME_CHOICES, default='1H')
 
@@ -155,17 +199,22 @@ class IndicatorCondition(models.Model):
     # Comparison value details
     value_type = models.CharField(max_length=20, choices=VALUE_TYPE_CHOICES, default='NUMBER')
     value_number = models.FloatField(null=True, blank=True)
-    value_indicator = models.CharField(max_length=50, null=True, blank=True)
+    value_indicator = models.ForeignKey(
+        IndicatorDefinition,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='comparison_conditions'
+    )
     value_indicator_line = models.CharField(max_length=50, null=True, blank=True)
     value_timeframe = models.CharField(max_length=10, choices=TIMEFRAME_CHOICES, null=True, blank=True)
 
-    lookback_period = models.PositiveIntegerField(null=True, blank=True)
     indicator_parameters = models.JSONField(null=True, blank=True)
 
     position_in_chain = models.PositiveIntegerField()
 
     def __str__(self):
-        return f"IndicatorCondition {self.position_in_chain}: {self.indicator} {self.condition_operator} {self.get_value_display()}"
+        return f"IndicatorCondition {self.position_in_chain}: {self.indicator.display_name} {self.condition_operator} {self.get_value_display()}"
 
     def get_value_display(self):
         if self.value_type == 'NUMBER':
@@ -173,7 +222,7 @@ class IndicatorCondition(models.Model):
         elif self.value_type == 'PRICE':
             return "Current Price"
         elif self.value_type == 'INDICATOR_LINE':
-            return f"{self.value_indicator} ({self.value_indicator_line})"
+            return f"{self.value_indicator.display_name} ({self.value_indicator_line})"
         return "Unknown Value"
 
     def save(self, *args, **kwargs):

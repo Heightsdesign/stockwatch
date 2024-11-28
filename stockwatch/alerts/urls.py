@@ -8,18 +8,16 @@ from .views import (
     PriceTargetAlertViewSet,
     PercentageChangeAlertViewSet,
     IndicatorChainAlertViewSet,
-    IndicatorViewSet,
-    IndicatorLineViewSet,
-    UserAlertDetailView
+    UserAlertDetailView,
+    IndicatorDefinitionListView,  # Added this import
+    # Removed IndicatorViewSet and IndicatorLineViewSet
 )
-
 
 router = DefaultRouter()
 router.register(r'price-target-alerts', PriceTargetAlertViewSet, basename='price-target-alert')
 router.register(r'percentage-change-alerts', PercentageChangeAlertViewSet, basename='percentage-change-alert')
 router.register(r'indicator-chain-alerts', IndicatorChainAlertViewSet, basename='indicator-chain-alert')
-router.register(r'indicators', IndicatorViewSet, basename='indicator')
-router.register(r'indicator-lines', IndicatorLineViewSet, basename='indicator-line')
+# Removed router registrations for 'indicators' and 'indicator-lines'
 
 urlpatterns = [
     path('', include(router.urls)),
@@ -27,4 +25,5 @@ urlpatterns = [
     path('stocks/<str:symbol>/', StockDetailView.as_view(), name='stock-detail'),
     path('user-alerts/', UserAlertsView.as_view(), name='user-alerts'),
     path('alerts/<int:pk>/', UserAlertDetailView.as_view(), name='alert-detail'),
+    path('indicators/', IndicatorDefinitionListView.as_view(), name='indicator-list'),  # Added this URL pattern
 ]

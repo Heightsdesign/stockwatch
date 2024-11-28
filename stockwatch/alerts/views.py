@@ -11,6 +11,7 @@ from .models import (
     Indicator,
     IndicatorLine,
     IndicatorChainAlert,
+    IndicatorDefinition
 )
 from .serializers import (
     StockSerializer,
@@ -19,7 +20,8 @@ from .serializers import (
     PercentageChangeAlertSerializer,
     IndicatorChainAlertSerializer,
     IndicatorSerializer,
-    IndicatorLineSerializer
+    IndicatorLineSerializer,
+    IndicatorDefinitionSerializer
 )
 
 
@@ -151,4 +153,8 @@ class UserAlertDetailView(generics.RetrieveUpdateDestroyAPIView):
         # Handle other alert types similarly
 
         return Response(serializer.data)
+
+class IndicatorDefinitionListView(generics.ListAPIView):
+    queryset = IndicatorDefinition.objects.all()
+    serializer_class = IndicatorDefinitionSerializer
 

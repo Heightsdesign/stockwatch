@@ -105,25 +105,62 @@
       <div formArrayName="conditions">
         <div *ngFor="let condition of conditions.controls; let i = index">
           <div [formGroupName]="i">
+            <div formGroupName="parameters">
+              <div *ngFor="let param of indicatorParameters[i]">
+                <label>{{ param.display_name }}</label>
+
+                <!-- Handle different parameter types -->
+                <ng-container [ngSwitch]="param.param_type">
+                  <!-- Integer and Float Parameters -->
+                  <input
+                    *ngSwitchCase="'int'"
+                    type="number"
+                    [formControlName]="param.name"
+                    [required]="param.required"
+                  />
+                  <input
+                    *ngSwitchCase="'float'"
+                    type="number"
+                    step="any"
+                    [formControlName]="param.name"
+                    [required]="param.required"
+                  />
+                  <!-- String Parameter -->
+                  <input
+                    *ngSwitchCase="'string'"
+                    type="text"
+                    [formControlName]="param.name"
+                    [required]="param.required"
+                  />
+                  <!-- Choice Parameter -->
+                  <ion-select
+                    *ngSwitchCase="'choice'"
+                    [formControlName]="param.name"
+                    [required]="param.required"
+                  >
+                    <ion-select-option
+                      *ngFor="let choice of param.choices"
+                      [value]="choice"
+                    >
+                      {{ choice }}
+                    </ion-select-option>
+                  </ion-select>
+                </ng-container>
+              </div>
+            </div>
             <!-- Indicator Selection -->
-            <ion-item>
-              <ion-label>Indicator</ion-label>
-              <ion-select formControlName="indicator" (ionChange)="onIndicatorChange($event, i)">
-                <ion-select-option *ngFor="let indicator of indicators" [value]="indicator.id">
-                  {{ indicator.name }}
-                </ion-select-option>
-              </ion-select>
-            </ion-item>
+            <ion-select formControlName="indicator" (ionChange)="onIndicatorChange($event, i)">
+              <ion-select-option *ngFor="let indicator of indicators" [value]="indicator.name">
+                {{ indicator.display_name }}
+              </ion-select-option>
+            </ion-select>
 
             <!-- Indicator Line Selection -->
-            <ion-item>
-              <ion-label>Indicator Line</ion-label>
-              <ion-select formControlName="indicator_line" required>
-                <ion-select-option *ngFor="let line of indicatorLines[i]" [value]="line.id">
-                  {{ line.name }}
-                </ion-select-option>
-              </ion-select>
-            </ion-item>
+            <ion-select formControlName="indicator_line">
+              <ion-select-option *ngFor="let line of indicatorLines[i]" [value]="line.name">
+                {{ line.display_name }}
+              </ion-select-option>
+            </ion-select>
 
             <!-- Indicator Timeframe -->
             <ion-item>

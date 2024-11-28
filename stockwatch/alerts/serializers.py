@@ -11,6 +11,8 @@ from .models import (
     IndicatorLine,
     IndicatorChainAlert,
     IndicatorCondition,
+    IndicatorDefinition,
+    IndicatorParameter
 )
 
 User = get_user_model()
@@ -272,12 +274,10 @@ class PercentageChangeAlertSerializer(serializers.ModelSerializer):
         return data
 
 
-
 class IndicatorLineSerializer(serializers.ModelSerializer):
     class Meta:
         model = IndicatorLine
-        fields = ['id', 'name']
-
+        fields = ['name', 'display_name']
 
 class IndicatorSerializer(serializers.ModelSerializer):
     lines = IndicatorLineSerializer(many=True, read_only=True)
@@ -288,6 +288,18 @@ class IndicatorSerializer(serializers.ModelSerializer):
 
 
 class IndicatorConditionSerializer(serializers.ModelSerializer):
+
+    indicator = serializers.SlugRelatedField(
+        slug_field='name',
+        queryset=IndicatorDefinition.objects.all()
+    )
+    value_indicator = serializers.SlugRelatedField(
+        slug_field='name',
+        queryset=IndicatorDefinition.objects.all(),
+        required=False,
+        allow_null=True
+    )
+
     class Meta:
         model = IndicatorCondition
         fields = [
@@ -302,38 +314,70 @@ class IndicatorConditionSerializer(serializers.ModelSerializer):
             'value_indicator_line',
             'value_timeframe',
             'position_in_chain',
+            'indicator_parameters',
         ]
 
     def validate(self, data):
-        value_type = data.get('value_type')
+        # Existing validation...
+        indicator = data.get('indicator')
+        parameters = data.get('indicator_parameters', {})
 
-        if value_type == 'NUMBER':
-            if data.get('value_number') is None:
-                raise serializers.ValidationError({
-                    'value_number': "This field is required when 'value_type' is 'NUMBER'."
-                })
-        elif value_type == 'INDICATOR_LINE':
-            if not data.get('value_indicator'):
-                raise serializers.ValidationError({
-                    'value_indicator': "This field is required when 'value_type' is 'INDICATOR_LINE'."
-                })
-            if not data.get('value_indicator_line'):
-                raise serializers.ValidationError({
-                    'value_indicator_line': "This field is required when 'value_type' is 'INDICATOR_LINE'."
-                })
-            if not data.get('value_timeframe'):
-                raise serializers.ValidationError({
-                    'value_timeframe': "This field is required when 'value_type' is 'INDICATOR_LINE'."
-                })
-        elif value_type == 'PRICE':
-            # No additional fields required
-            pass
-        else:
-            raise serializers.ValidationError("Invalid 'value_type' provided.")
+        # Retrieve parameter definitions from the database
+        param_definitions = indicator.parameters.all()
 
+        validated_parameters = {}
+        for param_def in param_definitions:
+            param_name = param_def.name
+            param_type = param_def.param_type
+            required = param_def.required
+            default_value = param_def.default_value
+
+            if param_name in parameters:
+                value = parameters[param_name]
+                # Type validation
+                if param_type == 'int' and not isinstance(value, int):
+                    raise serializers.ValidationError({param_name: "Must be an integer."})
+                if param_type == 'float' and not isinstance(value, (int, float)):
+                    raise serializers.ValidationError({param_name: "Must be a float."})
+                if param_type == 'string' and not isinstance(value, str):
+                    raise serializers.ValidationError({param_name: "Must be a string."})
+                if param_type == 'choice' and value not in param_def.choices:
+                    raise serializers.ValidationError({param_name: f"Invalid choice. Available choices are: {param_def.choices}"})
+                validated_parameters[param_name] = value
+            else:
+                if required:
+                    raise serializers.ValidationError({param_name: "This parameter is required."})
+                else:
+                    # Use default value if provided
+                    if default_value:
+                        # Convert default_value to the correct type
+                        if param_type == 'int':
+                            validated_parameters[param_name] = int(default_value)
+                        elif param_type == 'float':
+                            validated_parameters[param_name] = float(default_value)
+                        else:
+                            validated_parameters[param_name] = default_value
+                    else:
+                        validated_parameters[param_name] = None
+
+        data['indicator_parameters'] = validated_parameters
         return data
 
-# serializers.py
+    def create(self, validated_data):
+        parameters = validated_data.pop('indicator_parameters', {})
+        condition = super().create(validated_data)
+        condition.indicator_parameters = parameters
+        condition.save()
+        return condition
+
+    def update(self, instance, validated_data):
+        parameters = validated_data.pop('indicator_parameters', {})
+        instance = super().update(instance, validated_data)
+        instance.indicator_parameters = parameters
+        instance.save()
+        return instance
+
+
 class IndicatorChainAlertSerializer(serializers.ModelSerializer):
     conditions = IndicatorConditionSerializer(many=True)
     stock = serializers.SlugRelatedField(
@@ -401,5 +445,19 @@ class IndicatorChainAlertSerializer(serializers.ModelSerializer):
                 )
 
         return instance
+
+
+class IndicatorParameterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = IndicatorParameter
+        fields = ['name', 'display_name', 'param_type', 'required', 'default_value', 'choices']
+
+class IndicatorDefinitionSerializer(serializers.ModelSerializer):
+    parameters = IndicatorParameterSerializer(many=True, read_only=True)
+    lines = IndicatorLineSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = IndicatorDefinition
+        fields = ['name', 'display_name', 'description', 'parameters', 'lines']
 
 

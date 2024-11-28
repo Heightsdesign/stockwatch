@@ -131,7 +131,38 @@ def process_percentage_change_alert(alert, data):
         alert.is_active = False  # Deactivate the alert after triggering
         alert.save()
 
-# alerts/tasks.py
+def resample_data(df, timeframe):
+    """
+    Resample the DataFrame according to the specified timeframe.
+
+    Args:
+        df (pd.DataFrame): Original DataFrame with datetime index.
+        timeframe (str): Timeframe string, e.g., '1MIN', '5MIN', '1H', '1D'
+
+    Returns:
+        pd.DataFrame: Resampled DataFrame.
+    """
+    timeframe_map = {
+        '1MIN': '1T',
+        '5MIN': '5T',
+        '15MIN': '15T',
+        '30MIN': '30T',
+        '1H': '1H',
+        '4H': '4H',
+        '1D': '1D',
+    }
+    resample_freq = timeframe_map.get(timeframe)
+    if resample_freq:
+        resampled_data = df.resample(resample_freq).agg({
+            'open': 'first',
+            'high': 'max',
+            'low': 'min',
+            'close': 'last',
+            'volume': 'sum',
+        }).dropna()
+        return resampled_data
+    else:
+        raise ValueError(f"Unknown timeframe: {timeframe}")
 
 def process_indicator_chain_alert(alert):
     print(f'Processing indicator chain alert for {alert.stock.symbol}')
@@ -143,7 +174,7 @@ def process_indicator_chain_alert(alert):
         print(f'No data found for {alert.stock.symbol}')
         return
 
-    # Ensure the data has datetime index
+    # Ensure the data has a datetime index
     if not isinstance(data.index, pd.DatetimeIndex):
         data.index = pd.to_datetime(data.index)
 
@@ -157,6 +188,10 @@ def process_indicator_chain_alert(alert):
     # Iterate over each condition in the chain
     for condition in indicator_chain_alert.conditions.all().order_by('position_in_chain'):
         print(f"Evaluating condition at position {condition.position_in_chain}")
+
+        # Fetch the main indicator definition
+        indicator_def = condition.indicator  # Should be a ForeignKey to IndicatorDefinition
+
         # Resample data according to indicator_timeframe
         try:
             resampled_data = resample_data(data, condition.indicator_timeframe)
@@ -165,18 +200,21 @@ def process_indicator_chain_alert(alert):
             all_conditions_met = False
             break
 
+        # Prepare parameters for the main indicator calculation
+        parameters = condition.indicator_parameters or {}
+
         # Calculate the main indicator value
         try:
-            # Prepare parameters for indicator calculation
-            kwargs = {}
-            if condition.indicator_line:
-                kwargs['line'] = condition.indicator_line
-
-            indicator_value_series = calculate_indicator(condition.indicator, resampled_data, **kwargs)
+            indicator_value_series = calculate_indicator(
+                indicator_name=indicator_def.name,
+                df=resampled_data,
+                line=condition.indicator_line,
+                parameters=parameters
+            )
             indicator_value = indicator_value_series.iloc[-1]
-            print(f"Main Indicator ({condition.indicator}): {indicator_value}")
+            print(f"Main Indicator ({indicator_def.display_name}): {indicator_value}")
         except Exception as e:
-            print(f"Error calculating {condition.indicator}: {e}")
+            print(f"Error calculating {indicator_def.display_name}: {e}")
             all_conditions_met = False
             break
 
@@ -184,10 +222,20 @@ def process_indicator_chain_alert(alert):
         if condition.value_type == 'NUMBER':
             comparison_value = condition.value_number
             print(f"Comparison Value (NUMBER): {comparison_value}")
+
         elif condition.value_type == 'PRICE':
             comparison_value = resampled_data['close'].iloc[-1]
             print(f"Comparison Value (PRICE): {comparison_value}")
+
         elif condition.value_type == 'INDICATOR_LINE':
+            # Fetch the comparison indicator definition
+            try:
+                value_indicator_def = condition.value_indicator  # Should be a ForeignKey to IndicatorDefinition
+            except IndicatorDefinition.DoesNotExist:
+                print(f"IndicatorDefinition does not exist for comparison indicator in condition {condition.id}")
+                all_conditions_met = False
+                break
+
             # Resample data according to value_timeframe
             try:
                 resampled_data_comp = resample_data(data, condition.value_timeframe)
@@ -195,25 +243,26 @@ def process_indicator_chain_alert(alert):
                 print(f"Error resampling data for comparison value: {e}")
                 all_conditions_met = False
                 break
-            try:
-                # Prepare parameters for comparison indicator calculation
-                kwargs_comp = {}
-                if condition.value_indicator_line:
-                    kwargs_comp['line'] = condition.value_indicator_line
 
+            # Prepare parameters for comparison indicator calculation
+            parameters_comp = condition.indicator_parameters or {}
+
+            try:
                 comparison_indicator_series = calculate_indicator(
-                    condition.value_indicator,
-                    resampled_data_comp,
-                    **kwargs_comp
+                    indicator_name=value_indicator_def.name,
+                    df=resampled_data_comp,
+                    line=condition.value_indicator_line,
+                    parameters=parameters_comp
                 )
                 comparison_value = comparison_indicator_series.iloc[-1]
-                print(f"Comparison Indicator ({condition.value_indicator}): {comparison_value}")
+                print(f"Comparison Indicator ({value_indicator_def.display_name}): {comparison_value}")
             except Exception as e:
-                print(f"Error calculating comparison indicator {condition.value_indicator}: {e}")
+                print(f"Error calculating comparison indicator {value_indicator_def.display_name}: {e}")
                 all_conditions_met = False
                 break
+
         else:
-            print(f"Unknown value type {condition.value_type} in condition {condition.id}")
+            print(f"Unknown value type '{condition.value_type}' in condition {condition.id}")
             all_conditions_met = False
             break
 
@@ -226,20 +275,19 @@ def process_indicator_chain_alert(alert):
         elif condition.condition_operator == 'EQ':
             condition_met = indicator_value == comparison_value
         else:
-            print(f"Unknown condition operator {condition.condition_operator} in condition {condition.id}")
+            print(f"Unknown condition operator '{condition.condition_operator}' in condition {condition.id}")
             all_conditions_met = False
             break
 
         if not condition_met:
             all_conditions_met = False
-            print(f"Condition not met for {condition.indicator} at position {condition.position_in_chain}")
+            print(f"Condition not met for {indicator_def.display_name} at position {condition.position_in_chain}")
             break
         else:
-            print(f"Condition met for {condition.indicator} at position {condition.position_in_chain}")
+            print(f"Condition met for {indicator_def.display_name} at position {condition.position_in_chain}")
 
     if all_conditions_met:
         print(f"All conditions met for alert {alert.id}")
         send_alert_notification(alert, "Indicator chain conditions met")
         alert.is_active = False  # Deactivate the alert after triggering
         alert.save()
-

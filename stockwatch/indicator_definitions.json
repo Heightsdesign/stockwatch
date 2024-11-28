@@ -1,0 +1,79 @@
+[
+    {
+        "name": "moving_average",
+        "display_name": "Moving Average",
+        "description": "A simple moving average calculates the average of a selected range of prices.",
+        "parameters": [
+            {
+                "name": "length",
+                "display_name": "Length",
+                "param_type": "int",
+                "required": true,
+                "default_value": 14
+            }
+        ],
+        "lines": [
+            {"name": "ma", "display_name": "MA"}
+        ]
+    },
+    {
+        "name": "bollinger_bands",
+        "display_name": "Bollinger Bands",
+        "description": "Bollinger Bands are a type of statistical chart characterizing the prices and volatility over time.",
+        "parameters": [
+            {
+                "name": "length",
+                "display_name": "Length",
+                "param_type": "int",
+                "required": true,
+                "default_value": 20
+            },
+            {
+                "name": "stddev",
+                "display_name": "Standard Deviation",
+                "param_type": "float",
+                "required": true,
+                "default_value": 2.0
+            }
+        ],
+        "lines": [
+            {"name": "upper_band", "display_name": "Upper Band"},
+            {"name": "middle_band", "display_name": "Middle Band"},
+            {"name": "lower_band", "display_name": "Lower Band"}
+        ]
+    },
+    {
+        "name": "macd",
+        "display_name": "MACD",
+        "description": "MACD is a trend-following momentum indicator that shows the relationship between two moving averages.",
+        "parameters": [
+            {
+                "name": "fast_period",
+                "display_name": "Fast Period",
+                "param_type": "int",
+                "required": true,
+                "default_value": 12
+            },
+            {
+                "name": "slow_period",
+                "display_name": "Slow Period",
+                "param_type": "int",
+                "required": true,
+                "default_value": 26
+            },
+            {
+                "name": "signal_period",
+                "display_name": "Signal Period",
+                "param_type": "int",
+                "required": true,
+                "default_value": 9
+            }
+        ],
+         "lines": [
+            {"name": "macd_line", "display_name": "MACD Line"},
+            {"name": "signal_line", "display_name": "Signal Line"},
+            {"name": "histogram", "display_name": "Histogram"}
+        ]
+    }
+
+]
