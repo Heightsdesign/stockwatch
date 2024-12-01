@@ -4,16 +4,7 @@ import { FormBuilder, FormControl, FormGroup, FormArray, Validators } from '@ang
 import { ApiService } from '../services/api.service';
 import { AlertController, LoadingController } from '@ionic/angular';
 import { Observable } from 'rxjs';
-
-interface IndicatorParameter {
-  name: string;
-  display_name: string;
-  param_type: string;
-  required: boolean;
-  default_value?: any;
-  choices?: string[];
-}
-
+import { IndicatorParameter } from '../interfaces/indicator-parameter.interface';
 
 @Component({
   selector: 'app-stock-details',
@@ -28,6 +19,8 @@ export class StockDetailsPage implements OnInit {
   alertForm!: FormGroup;
   valueIndicatorLines: any[][] = [];
   indicatorParameters: { [key: number]: any[] } = {};
+  valueIndicatorParameters: { [key: number]: IndicatorParameter[] } = {};
+
 
   // **Added:** Define check interval options
   checkIntervals = [
@@ -107,8 +100,22 @@ export class StockDetailsPage implements OnInit {
     });
   }
 
+  loadValueIndicatorLines(indicatorName: string, conditionIndex: number) {
+  const indicator = this.indicators.find(ind => ind.name === indicatorName);
+  if (indicator) {
+    this.valueIndicatorLines[conditionIndex] = indicator.lines;
+  } else {
+    this.valueIndicatorLines[conditionIndex] = [];
+  }
+}
+
+
   get conditions(): FormArray {
     return this.alertForm.get('conditions') as FormArray;
+  }
+
+  get conditionFormGroups(): FormGroup[] {
+    return this.conditions.controls as FormGroup[];
   }
 
   createConditionGroup(): FormGroup {
@@ -123,6 +130,7 @@ export class StockDetailsPage implements OnInit {
       value_indicator: [''],
       value_indicator_line: [''],
       value_timeframe: [''],
+      value_parameters: this.fb.group({}),
       parameters: this.fb.group({}),
     });
 
@@ -190,22 +198,45 @@ export class StockDetailsPage implements OnInit {
     }
   }
 
-  onValueIndicatorChange(event: any, conditionIndex: number) {
-    const indicatorName = event.detail.value;
-    console.log(`Value Indicator changed for condition ${conditionIndex}, indicatorName: ${indicatorName}`);
 
-    const indicator = this.indicators.find((ind) => ind.name === indicatorName);
-    if (indicator) {
-      if (!this.valueIndicatorLines) {
-        this.valueIndicatorLines = [];
-      }
-      this.valueIndicatorLines[conditionIndex] = indicator.lines;
-    } else {
-      if (this.valueIndicatorLines) {
-        this.valueIndicatorLines[conditionIndex] = [];
-      }
+onValueIndicatorChange(event: any, conditionIndex: number) {
+  const indicatorName = event.detail.value;
+  const indicator = this.indicators.find(ind => ind.name === indicatorName);
+
+  const conditionGroup = this.conditions.at(conditionIndex) as FormGroup;
+
+  if (indicator) {
+    // Load value indicator lines
+    this.loadValueIndicatorLines(indicatorName, conditionIndex);
+
+    // Initialize parameter controls for value_indicator
+    const parameters: IndicatorParameter[] = indicator.parameters || [];
+
+    const valueParametersGroup = this.fb.group({});
+    parameters.forEach((param: IndicatorParameter) => {
+      valueParametersGroup.addControl(
+        param.name,
+        new FormControl(
+          param.default_value || '',
+          param.required ? Validators.required : []
+        )
+      );
+    });
+
+    conditionGroup.setControl('value_parameters', valueParametersGroup);
+
+    // Store parameters for the template
+    this.valueIndicatorParameters[conditionIndex] = parameters;
+  } else {
+    // Handle case where indicator is not found
+    this.valueIndicatorLines[conditionIndex] = [];
+    if (conditionGroup.contains('value_parameters')) {
+      conditionGroup.removeControl('value_parameters');
     }
+    this.valueIndicatorParameters[conditionIndex] = [];
   }
+}
+
 
   onAlertTypeChange(alertType: string) {
     // Reset validators for relevant controls
@@ -294,6 +325,7 @@ export class StockDetailsPage implements OnInit {
   }
 
   async onSubmit() {
+    this.alertForm.markAllAsTouched();
     if (this.alertForm.invalid) {
       // Show validation errors
       const alert = await this.alertController.create({
@@ -353,7 +385,7 @@ export class StockDetailsPage implements OnInit {
     );
   }
 
-    prepareAlertData() {
+  prepareAlertData() {
     const formValues = this.alertForm.value;
     const stockSymbol = this.stock.symbol;
 
@@ -383,7 +415,10 @@ export class StockDetailsPage implements OnInit {
       case 'INDICATOR_CHAIN':
         return {
           ...alert,
-          conditions: formValues.conditions.map((condition: any, index: number) => {
+          conditions: this.conditions.controls.map((control, index) => {
+            const conditionGroup = control as FormGroup; // Explicitly cast the control to FormGroup
+            const condition = conditionGroup.value;
+
             const conditionData: any = {
               position_in_chain: condition.position_in_chain,
               indicator: condition.indicator,
@@ -400,11 +435,33 @@ export class StockDetailsPage implements OnInit {
               conditionData.value_indicator = condition.value_indicator;
               conditionData.value_indicator_line = condition.value_indicator_line;
               conditionData.value_timeframe = condition.value_timeframe;
-            }
-            // For 'PRICE', no additional value fields are needed
 
-            // Convert indicator parameters to correct data types
-            const parameterValues = condition.parameters || {};
+              // Get value_indicator_parameters from FormGroup
+              const valueParametersGroup = conditionGroup.get('value_parameters') as FormGroup;
+              const valueParameterValues = valueParametersGroup ? valueParametersGroup.value : {};
+              const valueParameterDefinitions = this.valueIndicatorParameters[index] || [];
+
+              const convertedValueParameters: { [key: string]: any } = {};
+              valueParameterDefinitions.forEach((paramDef: IndicatorParameter) => {
+                const paramName = paramDef.name;
+                let value = valueParameterValues[paramName];
+
+                // Convert value based on param_type
+                if (paramDef.param_type === 'int') {
+                  convertedValueParameters[paramName] = parseInt(value, 10);
+                } else if (paramDef.param_type === 'float') {
+                  convertedValueParameters[paramName] = parseFloat(value);
+                } else {
+                  convertedValueParameters[paramName] = value;
+                }
+              });
+
+              conditionData.value_indicator_parameters = convertedValueParameters;
+            }
+
+            // Convert indicator_parameters
+            const parametersGroup = conditionGroup.get('parameters') as FormGroup;
+            const parameterValues = parametersGroup ? parametersGroup.value : {};
             const parameterDefinitions = this.indicatorParameters[index] || [];
 
             const convertedParameters: { [key: string]: any } = {};
@@ -417,12 +474,7 @@ export class StockDetailsPage implements OnInit {
                 convertedParameters[paramName] = parseInt(value, 10);
               } else if (paramDef.param_type === 'float') {
                 convertedParameters[paramName] = parseFloat(value);
-              } else if (paramDef.param_type === 'string') {
-                convertedParameters[paramName] = value;
-              } else if (paramDef.param_type === 'choice') {
-                convertedParameters[paramName] = value;
               } else {
-                // Default to string if type is unknown
                 convertedParameters[paramName] = value;
               }
             });

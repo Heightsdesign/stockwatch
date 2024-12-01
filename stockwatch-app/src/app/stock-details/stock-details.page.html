@@ -24,6 +24,16 @@
       </ion-item>
     </ion-list>
 
+    <!-- Check Interval Field -->
+    <ion-item>
+      <ion-label>Check Interval</ion-label>
+      <ion-select formControlName="check_interval" required>
+        <ion-select-option *ngFor="let interval of checkIntervals" [value]="interval.value">
+          {{ interval.label }}
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+
     <!-- Price Target Alert Fields -->
     <ng-container *ngIf="alertForm.get('alert_type')?.value === 'PRICE'">
       <ion-list>
@@ -36,14 +46,6 @@
           <ion-select formControlName="condition" required>
             <ion-select-option value="GT">Greater Than</ion-select-option>
             <ion-select-option value="LT">Less Than</ion-select-option>
-          </ion-select>
-        </ion-item>
-        <ion-item>
-          <ion-label>Check Interval (Minutes)</ion-label>
-          <ion-select formControlName="check_interval" required>
-            <ion-select-option *ngFor="let interval of checkIntervals" [value]="interval.value">
-              {{ interval.label }}
-            </ion-select-option>
           </ion-select>
         </ion-item>
       </ion-list>
@@ -88,15 +90,6 @@
       <ion-item>
         <ion-label position="floating">Percentage Change (%)</ion-label>
         <ion-input formControlName="percentage_change" type="number"></ion-input>
-      </ion-item>
-      <!-- Check Interval -->
-      <ion-item>
-        <ion-label>Check Interval (Minutes)</ion-label>
-        <ion-select formControlName="check_interval" required>
-          <ion-select-option *ngFor="let interval of checkIntervals" [value]="interval.value">
-            {{ interval.label }}
-          </ion-select-option>
-        </ion-select>
       </ion-item>
     </ng-container>
 
@@ -208,20 +201,20 @@
             <div *ngIf="condition.get('value_type')?.value === 'INDICATOR_LINE'">
               <!-- Value Indicator Selection -->
               <ion-item>
-                <ion-label position="stacked">Value Indicator</ion-label>
-                <ion-select formControlName="value_indicator" (ionChange)="onValueIndicatorChange($event, i)" required>
-                  <ion-select-option *ngFor="let ind of indicators" [value]="ind.id">
-                    {{ ind.name }}
+                <ion-label>Value Indicator</ion-label>
+                <ion-select formControlName="value_indicator" (ionChange)="onValueIndicatorChange($event, i)">
+                  <ion-select-option *ngFor="let ind of indicators" [value]="ind.name">
+                    {{ ind.display_name }}
                   </ion-select-option>
                 </ion-select>
               </ion-item>
 
               <!-- Value Indicator Line Selection -->
               <ion-item *ngIf="valueIndicatorLines[i] && valueIndicatorLines[i].length > 0">
-                <ion-label position="stacked">Value Indicator Line</ion-label>
+                <ion-label>Value Indicator Line</ion-label>
                 <ion-select formControlName="value_indicator_line" required>
-                  <ion-select-option *ngFor="let line of valueIndicatorLines[i]" [value]="line.id">
-                    {{ line.name }}
+                  <ion-select-option *ngFor="let line of valueIndicatorLines[i]" [value]="line.name">
+                    {{ line.display_name }}
                   </ion-select-option>
                 </ion-select>
               </ion-item>
@@ -230,6 +223,7 @@
               <ion-item>
                 <ion-label>Value Timeframe</ion-label>
                 <ion-select formControlName="value_timeframe" required>
+                  <!-- Timeframe options -->
                   <ion-select-option value="1MIN">1 Minute</ion-select-option>
                   <ion-select-option value="5MIN">5 Minutes</ion-select-option>
                   <ion-select-option value="15MIN">15 Minutes</ion-select-option>
@@ -237,6 +231,50 @@
                   <ion-select-option value="1D">1 Day</ion-select-option>
                 </ion-select>
               </ion-item>
+
+              <!-- Value Indicator Parameters -->
+              <div formGroupName="value_parameters" *ngIf="valueIndicatorParameters[i] && valueIndicatorParameters[i].length > 0">
+                <div *ngFor="let param of valueIndicatorParameters[i]">
+                  <ion-item>
+                    <ion-label position="stacked">{{ param.display_name }}</ion-label>
+                    <ng-container [ngSwitch]="param.param_type">
+                      <!-- Integer Parameter -->
+                      <ion-input
+                        *ngSwitchCase="'int'"
+                        type="number"
+                        inputmode="numeric"
+                        [formControlName]="param.name"
+                        [required]="param.required">
+                      </ion-input>
+                      <!-- Float Parameter -->
+                      <ion-input
+                        *ngSwitchCase="'float'"
+                        type="number"
+                        inputmode="decimal"
+                        step="any"
+                        [formControlName]="param.name"
+                        [required]="param.required">
+                      </ion-input>
+                      <!-- String Parameter -->
+                      <ion-input
+                        *ngSwitchCase="'string'"
+                        type="text"
+                        [formControlName]="param.name"
+                        [required]="param.required">
+                      </ion-input>
+                      <!-- Choice Parameter -->
+                      <ion-select
+                        *ngSwitchCase="'choice'"
+                        [formControlName]="param.name"
+                        [required]="param.required">
+                        <ion-select-option *ngFor="let choice of param.choices" [value]="choice">
+                          {{ choice }}
+                        </ion-select-option>
+                      </ion-select>
+                    </ng-container>
+                  </ion-item>
+                  </div>
+              </div>
             </div>
 
             <!-- Remove Condition Button -->
