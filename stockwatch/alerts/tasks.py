@@ -2,11 +2,13 @@
 
 from celery import shared_task
 from django.utils import timezone
-from .models import Alert
 from .utils import get_stock_data, calculate_indicator
 from django.core.mail import send_mail
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
+import pandas as pd
 
+from .models import Alert, IndicatorChainAlert, IndicatorCondition, Indicator
 from .notifications import send_sms_notification
 
 
@@ -164,6 +166,7 @@ def resample_data(df, timeframe):
     else:
         raise ValueError(f"Unknown timeframe: {timeframe}")
 
+
 def process_indicator_chain_alert(alert):
     print(f'Processing indicator chain alert for {alert.stock.symbol}')
     all_conditions_met = True
@@ -180,8 +183,8 @@ def process_indicator_chain_alert(alert):
 
     # Access the IndicatorChainAlert instance
     try:
-        indicator_chain_alert = alert.indicator_chain
-    except IndicatorChainAlert.DoesNotExist:
+        indicator_chain_alert = alert.indicator_chain  # Assuming the related name is 'indicator_chain_alert'
+    except ObjectDoesNotExist:
         print(f"No IndicatorChainAlert associated with alert {alert.id}")
         return
 
@@ -190,7 +193,12 @@ def process_indicator_chain_alert(alert):
         print(f"Evaluating condition at position {condition.position_in_chain}")
 
         # Fetch the main indicator definition
-        indicator_def = condition.indicator  # Should be a ForeignKey to IndicatorDefinition
+        try:
+            indicator_def = Indicator.objects.get(name=condition.indicator)
+        except Indicator.DoesNotExist:
+            print(f"Indicator '{condition.indicator}' does not exist for condition {condition.id}")
+            all_conditions_met = False
+            break
 
         # Resample data according to indicator_timeframe
         try:
@@ -230,9 +238,9 @@ def process_indicator_chain_alert(alert):
         elif condition.value_type == 'INDICATOR_LINE':
             # Fetch the comparison indicator definition
             try:
-                value_indicator_def = condition.value_indicator  # Should be a ForeignKey to IndicatorDefinition
-            except IndicatorDefinition.DoesNotExist:
-                print(f"IndicatorDefinition does not exist for comparison indicator in condition {condition.id}")
+                value_indicator_def = Indicator.objects.get(name=condition.value_indicator)
+            except Indicator.DoesNotExist:
+                print(f"Indicator '{condition.value_indicator}' does not exist for condition {condition.id}")
                 all_conditions_met = False
                 break
 
@@ -245,8 +253,9 @@ def process_indicator_chain_alert(alert):
                 break
 
             # Prepare parameters for comparison indicator calculation
-            parameters_comp = condition.indicator_parameters or {}
+            parameters_comp = condition.value_indicator_parameters or {}
 
+            # Calculate the comparison indicator value
             try:
                 comparison_indicator_series = calculate_indicator(
                     indicator_name=value_indicator_def.name,

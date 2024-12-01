@@ -143,6 +143,7 @@ class IndicatorLine(models.Model):
 
 class IndicatorChainAlert(models.Model):
     alert = models.OneToOneField(Alert, on_delete=models.CASCADE, related_name='indicator_chain')
+    check_interval = models.IntegerField(default=60)  # in minutes
 
     def __str__(self):
         return f"Indicator Chain Alert for {self.alert.stock.name} ({self.condition_count} conditions)"
