@@ -16,6 +16,7 @@ def get_stock_data(symbol, period='1mo', interval='1d'):
         print(f"Error fetching data for {symbol}: {e}")
         return pd.DataFrame()
 
+
 def calculate_indicator(indicator_name: str, df: pd.DataFrame, line: str = None, parameters: dict = None):
     """
     Calculate the specified indicator using pandas_ta.

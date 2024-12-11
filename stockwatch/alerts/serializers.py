@@ -389,11 +389,12 @@ class IndicatorChainAlertSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = IndicatorChainAlert
-        fields = ['id', 'stock', 'conditions', 'is_active']
+        fields = ['id', 'stock', 'conditions', 'is_active', 'check_interval']
         read_only_fields = ['id']
 
     def create(self, validated_data):
         conditions_data = validated_data.pop('conditions')
+        check_interval = validated_data.pop('check_interval', 60)
         stock = validated_data.pop('stock')
         is_active = validated_data.pop('is_active', True)
 
@@ -408,7 +409,10 @@ class IndicatorChainAlertSerializer(serializers.ModelSerializer):
         )
 
         # Create the IndicatorChainAlert instance
-        indicator_chain_alert = IndicatorChainAlert.objects.create(alert=alert)
+        indicator_chain_alert = IndicatorChainAlert.objects.create(
+            alert=alert,
+            check_interval=check_interval,
+        )
 
         # Create IndicatorCondition instances
         for condition_data in conditions_data:

@@ -211,6 +211,7 @@ class IndicatorCondition(models.Model):
     value_timeframe = models.CharField(max_length=10, choices=TIMEFRAME_CHOICES, null=True, blank=True)
 
     indicator_parameters = models.JSONField(null=True, blank=True)
+    value_indicator_parameters = models.JSONField(null=True, blank=True)
 
     position_in_chain = models.PositiveIntegerField()
 
