@@ -36,38 +36,67 @@ def calculate_indicator(indicator_name: str, df: pd.DataFrame, line: str = None,
 
     if indicator_name == "moving_average":
         length = parameters.get('length', 14)
-        result = ta.sma(df['close'], length=length)
+        result = df.ta.sma(length=length)
+        print(f"[DEBUG] In calculate_indicator: indicator_name={indicator_name}, line={line}, parameters={parameters}")
+
+        if result is None:
+            print("[DEBUG] calculate_indicator is about to return None!")
+        else:
+            print("[DEBUG] calculate_indicator result head:")
+            print(result.tail() if hasattr(result, 'head') else result)
+            print("Dataframe length : ", len(result))
+
         if line == "ma":
-            return result
+            return float(result.iloc[-1])
         else:
             raise ValueError(f"Unknown line '{line}' for Moving Average.")
 
     elif indicator_name == "bollinger_bands":
-        length = parameters.get('length', 20)
-        stddev = parameters.get('stddev', 2.0)
-        result = ta.bbands(df['close'], length=length, std=stddev)
-        if line == "upper band":
-            return result[f'BBU_{length}_{stddev}']
-        elif line == "middle band":
-            return result[f'BBM_{length}_{stddev}']
-        elif line == "lower band":
-            return result[f'BBL_{length}_{stddev}']
+        length = int(parameters.get('length', 20))
+        stddev = float(parameters.get('stddev', 2.0))
+        result = df.ta.bbands(length=length, std=stddev)
+
+        print(f"[DEBUG] In calculate_indicator: indicator_name={indicator_name}, line={line}, parameters={parameters}")
+
+        if result is None:
+            print("[DEBUG] calculate_indicator is about to return None!")
+        else:
+            print("[DEBUG] calculate_indicator result head:")
+            print(result.tail() if hasattr(result, 'head') else result)
+            print("Dataframe length : ", len(result))
+
+        if line == "upper_band":
+            return float(result[f'BBU_{length}_{stddev}'].iloc[-1])
+        elif line == "middle_band":
+            return float(result[f'BBM_{length}_{stddev}'].iloc[-1])
+        elif line == "lower_band":
+            return float(result[f'BBL_{length}_{stddev}'].iloc[-1])
         else:
             raise ValueError(f"Unknown line '{line}' for Bollinger Bands.")
 
     elif indicator_name == "macd":
-        fast_period = parameters.get('fast_period', 12)
-        slow_period = parameters.get('slow_period', 26)
-        signal_period = parameters.get('signal_period', 9)
-        result = ta.macd(df['close'], fast=fast_period, slow=slow_period, signal=signal_period)
-        if line == "macd line":
-            return result[f'MACD_{fast_period}_{slow_period}_{signal_period}']
-        elif line == "signal line":
-            return result[f'MACDs_{fast_period}_{slow_period}_{signal_period}']
-        elif line == "histogram":
-            return result[f'MACDh_{fast_period}_{slow_period}_{signal_period}']
+        fast_period = int(parameters.get('fast_period', 12))
+        slow_period = int(parameters.get('slow_period', 26))
+        signal_period = int(parameters.get('signal_period', 9))
+        result = df.ta.macd(fast=fast_period, slow=slow_period, signal=signal_period)
+
+        print(f"[DEBUG] In calculate_indicator: indicator_name={indicator_name}, line={line}, parameters={parameters}")
+
+        if result is None:
+            print("[DEBUG] calculate_indicator is about to return None!")
         else:
-            raise ValueError(f"Unknown line '{line}' for MACD.")
+            print("[DEBUG] calculate_indicator result head:")
+            print(result.tail() if hasattr(result, 'head') else result)
+            print("Dataframe length : ", len(result))
+
+        if line == "macd_line":
+            return float(result[f'MACD_{fast_period}_{slow_period}_{signal_period}'].iloc[-1])
+        elif line == "signal_line":
+            return float(result[f'MACDs_{fast_period}_{slow_period}_{signal_period}'].iloc[-1])
+        elif line == "histogram":
+            return float(result[f'MACDh_{fast_period}_{slow_period}_{signal_period}'].iloc[-1])
+        else:
+            raise ValueError(...)
 
     # Add other indicators...
 

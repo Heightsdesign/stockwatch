@@ -315,6 +315,7 @@ class IndicatorConditionSerializer(serializers.ModelSerializer):
             'value_timeframe',
             'position_in_chain',
             'indicator_parameters',
+            'value_indicator_parameters'
         ]
 
     def validate(self, data):

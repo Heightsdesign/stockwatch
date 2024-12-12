@@ -176,33 +176,33 @@ def process_indicator_chain_alert(alert):
 
     all_conditions_met = True
 
+    # Timeframe map (unchanged)
+    interval_map = {
+        '1MIN': ('1d', '1m'),
+        '5MIN': ('1d', '5m'),
+        '15MIN': ('1d', '15m'),
+        '30MIN': ('1d', '30m'),
+        '1H': ('5d', '60m'),
+        '4H': ('1mo', '240m'),
+        '1D': ('1mo', '1d')
+    }
+
     for condition in conditions:
         print(f"[DEBUG] Evaluating condition ID: {condition.id}, Position: {condition.position_in_chain}")
         print(f"[DEBUG] Main indicator: {condition.indicator.display_name} (name: {condition.indicator.name})")
         print(f"[DEBUG] Main indicator line: {condition.indicator_line}, Timeframe: {condition.indicator_timeframe}")
         print(f"[DEBUG] Main indicator parameters: {condition.indicator_parameters or {}}")
 
-        # Fetch main indicator data according to the condition's indicator_timeframe
+        # Fetch main indicator data
         try:
-            # Example: If condition.indicator_timeframe is '1MIN', we use period='1d', interval='1m'
-            # Adjust logic based on your timeframe map
-            interval_map = {
-                '1MIN': ('1d', '1m'),
-                '5MIN': ('1d', '5m'),
-                '15MIN': ('1d', '15m'),
-                '30MIN': ('1d', '30m'),
-                '1H': ('5d', '60m'),
-                '4H': ('1mo', '240m'),
-                '1D': ('1mo', '1d')
-            }
             period, interval = interval_map.get(condition.indicator_timeframe, ('1mo', '1d'))
             main_data = get_stock_data(alert.stock.symbol, period=period, interval=interval)
             if main_data.empty:
                 print(f"[DEBUG] No main data returned for {alert.stock.symbol} with timeframe {condition.indicator_timeframe}. Condition cannot be met.")
                 all_conditions_met = False
                 break
-            print(f"[DEBUG] Main data fetched for {alert.stock.symbol}, head:")
-            print(main_data.head())
+            print(f"[DEBUG] Main data fetched for {alert.stock.symbol}, tail:")
+            print(main_data.tail())
         except Exception as e:
             print(f"[DEBUG] Error fetching main data for {alert.stock.symbol}: {e}")
             all_conditions_met = False
@@ -210,15 +210,18 @@ def process_indicator_chain_alert(alert):
 
         parameters = condition.indicator_parameters or {}
 
-        # Calculate the main indicator value
+        # Calculate the main indicator value (now returning a float directly)
         try:
-            indicator_value_series = calculate_indicator(
+            indicator_value = calculate_indicator(
                 indicator_name=condition.indicator.name,
                 df=main_data,
                 line=condition.indicator_line,
                 parameters=parameters
             )
-            indicator_value = indicator_value_series.iloc[-1]
+            if indicator_value is None:
+                print("[DEBUG] calculate_indicator returned None for the main indicator. Condition cannot be met.")
+                all_conditions_met = False
+                break
             print(f"[DEBUG] Main indicator value: {indicator_value}")
         except Exception as e:
             print(f"[DEBUG] Error calculating main indicator '{condition.indicator.display_name}': {e}")
@@ -231,7 +234,8 @@ def process_indicator_chain_alert(alert):
             print(f"[DEBUG] Comparison type: NUMBER, value: {comparison_value}")
 
         elif condition.value_type == 'PRICE':
-            comparison_value = main_data['close'].iloc[-1]
+            # Last close value from main_data
+            comparison_value = float(main_data['close'].iloc[-1])
             print(f"[DEBUG] Comparison type: PRICE, last close: {comparison_value}")
 
         elif condition.value_type == 'INDICATOR_LINE':
@@ -252,8 +256,8 @@ def process_indicator_chain_alert(alert):
                     print(f"[DEBUG] No value data returned for {alert.stock.symbol} with timeframe {condition.value_timeframe}. Condition cannot be met.")
                     all_conditions_met = False
                     break
-                print("[DEBUG] Value indicator data head:")
-                print(value_data.head())
+                print("[DEBUG] Value indicator data tail:")
+                print(value_data.tail())
             except Exception as e:
                 print(f"[DEBUG] Error fetching value indicator data for {alert.stock.symbol}: {e}")
                 all_conditions_met = False
@@ -261,15 +265,18 @@ def process_indicator_chain_alert(alert):
 
             parameters_comp = condition.value_indicator_parameters or {}
 
-            # Calculate the comparison indicator value
+            # Calculate the comparison indicator value (also returning a float now)
             try:
-                comparison_indicator_series = calculate_indicator(
+                comparison_value = calculate_indicator(
                     indicator_name=condition.value_indicator.name,
                     df=value_data,
                     line=condition.value_indicator_line,
                     parameters=parameters_comp
                 )
-                comparison_value = comparison_indicator_series.iloc[-1]
+                if comparison_value is None:
+                    print("[DEBUG] calculate_indicator returned None for the comparison indicator. Condition cannot be met.")
+                    all_conditions_met = False
+                    break
                 print(f"[DEBUG] Comparison indicator value: {comparison_value}")
             except Exception as e:
                 print(f"[DEBUG] Error calculating comparison indicator '{condition.value_indicator.display_name}': {e}")
@@ -307,4 +314,5 @@ def process_indicator_chain_alert(alert):
         alert.save()
     else:
         print(f"[DEBUG] Not all conditions were met for alert {alert.id}. No notification triggered.")
+
 

@@ -200,6 +200,8 @@ export class StockDetailsPage implements OnInit {
 
 
 onValueIndicatorChange(event: any, conditionIndex: number) {
+
+  console.log("[DEBUG] onValueIndicatorChange triggered for condition", conditionIndex, "with indicator:", event.detail.value);
   const indicatorName = event.detail.value;
   const indicator = this.indicators.find(ind => ind.name === indicatorName);
 
@@ -343,6 +345,9 @@ onValueIndicatorChange(event: any, conditionIndex: number) {
     const alertType = this.alertForm.get('alert_type')?.value;
     const alertData = this.prepareAlertData();
 
+    // Add the debug log here:
+    console.log("[DEBUG] Alert Data before sending:", alertData);
+
     let createAlertObservable: Observable<any>;
 
     switch (alertType) {
@@ -386,6 +391,8 @@ onValueIndicatorChange(event: any, conditionIndex: number) {
   }
 
   prepareAlertData() {
+
+    console.log("[DEBUG] Form Values before prepareAlertData:", this.alertForm.value);
     const formValues = this.alertForm.value;
     const stockSymbol = this.stock.symbol;
 
@@ -489,3 +496,5 @@ onValueIndicatorChange(event: any, conditionIndex: number) {
     }
   }
 }
+
+
