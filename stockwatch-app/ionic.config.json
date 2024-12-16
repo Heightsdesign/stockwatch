@@ -1,5 +1,7 @@
 {
   "name": "stockwatch-app",
-  "integrations": {},
+  "integrations": {
+    "capacitor": {}
+  },
   "type": "angular"
 }

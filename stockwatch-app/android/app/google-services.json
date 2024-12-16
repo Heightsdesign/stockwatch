@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "115008457664",
+    "project_id": "stockwatch-cd67b",
+    "storage_bucket": "stockwatch-cd67b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:115008457664:android:a896cc4adfec1746961625",
+        "android_client_info": {
+          "package_name": "com.stockwatch.android"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBMUAi8fIlPqABN60pM-N7JiGZad1zN4Z0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -25,7 +25,7 @@ RUN sed -i 's/from numpy import NaN as npNaN/from numpy import nan as npNaN/' \
 # Copy the rest of the application code
 COPY . /app/
 
-# Expose port 8000 for the app
+# Expose port 8000 for the android
 EXPOSE 8000
 
 # Set environment variables
