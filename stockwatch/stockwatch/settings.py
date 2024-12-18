@@ -16,8 +16,11 @@ from decouple import config
 import dj_database_url
 from dotenv import load_dotenv
 import logging
+import firebase_admin
+from firebase_admin import credentials
 
 logging.basicConfig(level=logging.DEBUG)
+
 
 SECRET_KEY = config('SECRET_KEY', default='unsafe-secret-key')
 DEBUG = config('DEBUG', default=False, cast=bool)
@@ -54,6 +57,14 @@ TWILIO_MAGIC_NUMBER = os.getenv('TWILIO_MAGIC_NUMBER')
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
+
+# Path to your Firebase service account key JSON file
+FIREBASE_CREDENTIALS_PATH = os.path.join(BASE_DIR, 'stockwatch-cd67b-firebase-adminsdk-ax6qw-1e21bf5f35.json')
+
+# Initialize Firebase Admin
+if not firebase_admin._apps:
+    cred = credentials.Certificate(FIREBASE_CREDENTIALS_PATH)
+    firebase_admin.initialize_app(cred)
 
 # Application definition
 

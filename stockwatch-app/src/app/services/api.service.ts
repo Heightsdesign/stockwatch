@@ -105,4 +105,9 @@ export class ApiService {
   }
 
 
+  registerDeviceToken(data: { device_token: string }): Observable<any> {
+    return this.http.post(`${this.credsUrl}/api-register-device-token/`, data);
+  }
+
+
 }

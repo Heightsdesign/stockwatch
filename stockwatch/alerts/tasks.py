@@ -6,22 +6,29 @@ from .utils import get_stock_data, calculate_indicator
 from django.core.mail import send_mail
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+from .notifications import send_sms_notification, send_push_notification
 import pandas as pd
 
+
 from .models import Alert, IndicatorChainAlert, IndicatorCondition, Indicator
-from .notifications import send_sms_notification
 
 
 def send_alert_notification(alert, current_value):
     user = alert.user
-    message = f"Your alert condition has been met.\nCurrent Value: {current_value}"
+    subject = f"Stock Alert Triggered for {alert.stock.symbol}"
+    message = (
+        f"Hello {user.username},\n\n"
+        f"Your alert for {alert.stock.symbol} has been triggered.\n"
+        f"Current Value: {current_value}\n\n"
+        "Best regards,\nStock Watch Team"
+    )
 
     # Email Notification
     if user.receive_email_notifications and user.email:
-        subject = f"Stock Alert Triggered for {alert.stock.symbol}"
         from_email = settings.DEFAULT_FROM_EMAIL
         try:
             send_mail(subject, message, from_email, [user.email])
+            print(f"Email sent to {user.email}.")
         except Exception as e:
             print(f"Error sending email to {user.email}: {e}")
 
@@ -29,8 +36,22 @@ def send_alert_notification(alert, current_value):
     if user.receive_sms_notifications and user.phone_number:
         try:
             send_sms_notification(user, message)
+            print(f"SMS sent to {user.phone_number}.")
         except Exception as e:
             print(f"Error sending SMS to {user.phone_number}: {e}")
+
+    # Push Notification (Newly added)
+    # Check if user wants to receive push notifications
+    if getattr(user, 'receive_push_notifications', False):
+        title = f"Alert Triggered for {alert.stock.symbol}"
+        body = f"Current Value: {current_value}"
+        try:
+            send_push_notification(user, title, body)
+            print(f"Push notification sent to {user.username}.")
+        except Exception as e:
+            print(f"Error sending push notification to {user.username}: {e}")
+
+
 @shared_task
 def process_alerts():
     print('Processing alerts ...')
@@ -161,6 +182,7 @@ def resample_data(df, timeframe):
         return resampled_data
     else:
         raise ValueError(f"Unknown timeframe: {timeframe}")
+
 
 def process_indicator_chain_alert(alert):
     print(f"[DEBUG] process_indicator_chain_alert called for Alert {alert.id}, Symbol: {alert.stock.symbol}")

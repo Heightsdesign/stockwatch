@@ -1,9 +1,10 @@
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
-from rest_framework import generics
-from .serializers import UserProfileSerializer, CountrySerializer
-from .models import CustomUser, Country
+from rest_framework import generics, status
+from rest_framework.views import APIView
+from .serializers import UserProfileSerializer, CountrySerializer, UserDeviceSerializer
+from .models import CustomUser, Country, UserDevice
 from rest_framework.permissions import IsAuthenticated
 
 
@@ -32,3 +33,20 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
 class CountryListView(generics.ListAPIView):
     queryset = Country.objects.all()
     serializer_class = CountrySerializer
+
+
+class RegisterDeviceTokenView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = UserDeviceSerializer(data=request.data)
+        if serializer.is_valid():
+            device_token = serializer.validated_data.get('device_token')
+            user = request.user
+
+            if UserDevice.objects.filter(device_token=device_token).exists():
+                return Response({'detail': 'Device token already registered.'}, status=200)
+
+            UserDevice.objects.create(user=user, device_token=device_token)
+            return Response({'detail': 'Device token registered successfully.'}, status=201)
+        return Response(serializer.errors, status=400)

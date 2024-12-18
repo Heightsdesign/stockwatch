@@ -25,10 +25,3 @@ messaging.onBackgroundMessage(function(payload) {
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-// Optional: Handle notification click
-self.addEventListener('notificationclick', function(event) {
-  event.notification.close();
-  event.waitUntil(
-    clients.openWindow('https://your-website.com') // Replace with your desired URL
-  );
-});

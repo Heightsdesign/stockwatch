@@ -1,5 +1,6 @@
 # alerts/views.py
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework import generics, filters, viewsets
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny
@@ -23,6 +24,8 @@ from .serializers import (
     IndicatorLineSerializer,
     IndicatorDefinitionSerializer
 )
+
+from .tasks import send_push_notification
 
 
 class StockListView(generics.ListAPIView):
@@ -154,7 +157,23 @@ class UserAlertDetailView(generics.RetrieveUpdateDestroyAPIView):
 
         return Response(serializer.data)
 
+
 class IndicatorDefinitionListView(generics.ListAPIView):
     queryset = IndicatorDefinition.objects.all()
     serializer_class = IndicatorDefinitionSerializer
+
+class SendNotificationView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        title = request.data.get('title')
+        body = request.data.get('body')
+
+        if not title or not body:
+            return Response({'detail': 'Title and body are required.'}, status=400)
+
+        # Send a notification to the currently logged-in user
+        send_push_notification(request.user, title, body)
+
+        return Response({'detail': 'Notification sent successfully.'}, status=200)
 

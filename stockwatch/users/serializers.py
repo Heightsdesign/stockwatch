@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from .models import UserDevice
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from .models import CustomUser
 from .models import Country
@@ -63,10 +64,20 @@ class UserProfileSerializer(serializers.ModelSerializer):
         country = data.get('country')
         phone_number = data.get('phone_number')
 
-        # Ensure phone number starts with the correct prefix
         if country and phone_number:
+            # Ensure phone_number starts with the correct prefix
             if not phone_number.startswith(country.phone_prefix):
-                raise serializers.ValidationError(
-                    f"Phone number must start with {country.phone_prefix} for {country.name}."
+                # Construct a more explicit message
+                # For example: "Wrong phone number format. Your number must start with +44 for United Kingdom."
+                msg = (
+                    f"Wrong phone number format. Your number must start with "
+                    f"{country.phone_prefix} for {country.name}."
                 )
+                raise serializers.ValidationError({"detail": msg})
         return data
+
+
+class UserDeviceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserDevice
+        fields = ['id', 'device_token']
