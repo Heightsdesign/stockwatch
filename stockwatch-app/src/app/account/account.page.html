@@ -47,9 +47,15 @@
       <ion-label>SMS Notifications</ion-label>
       <ion-toggle [(ngModel)]="user.receive_sms_notifications"></ion-toggle>
     </ion-item>
-    <ion-item>
+    <!-- If push toggle is visible, show the toggle -->
+    <ion-item *ngIf="showPushToggle">
       <ion-label>Push Notifications</ion-label>
       <ion-toggle [(ngModel)]="user.receive_push_notifications"></ion-toggle>
+    </ion-item>
+
+    <!-- If push toggle is not visible but we have a notificationMessage, show a message to the user -->
+    <ion-item *ngIf="!showPushToggle && notificationMessage">
+      <ion-label>{{ notificationMessage }}</ion-label>
     </ion-item>
   </ion-list>
 

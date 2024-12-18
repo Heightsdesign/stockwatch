@@ -11,7 +11,7 @@ export async function requestNotificationPermission(): Promise<string | null> {
     console.log("Notification permission granted.");
     try {
       const token = await getToken(messaging, {
-        vapidKey: "YOUR_VAPID_KEY", // Add your FCM VAPID key
+        vapidKey: "BDc2pzDKbbsnytR3IwuQYh_4aZQvWCM7NmMVdRWjyyCjppxH3RVfvfu_p4Wn83PiLM3wDqkARJvebDfGnkNJGOM",
       });
       console.log("FCM registration token:", token);
       return token;

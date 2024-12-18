@@ -50,3 +50,13 @@ class RegisterDeviceTokenView(APIView):
             UserDevice.objects.create(user=user, device_token=device_token)
             return Response({'detail': 'Device token registered successfully.'}, status=201)
         return Response(serializer.errors, status=400)
+
+
+class UserDeviceListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        devices = UserDevice.objects.filter(user=user)
+        serializer = UserDeviceSerializer(devices, many=True)
+        return Response(serializer.data, status=200)

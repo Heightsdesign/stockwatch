@@ -40,44 +40,42 @@ class CustomRegisterSerializer(RegisterSerializer):
         user.save()
         return user
 
-
 class UserProfileSerializer(serializers.ModelSerializer):
-
-    country = serializers.CharField(required=False, allow_blank=True)
+    country = serializers.SlugRelatedField(
+        slug_field='iso_code',
+        queryset=Country.objects.all(),
+        required=False,
+        allow_null=True
+    )
 
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'phone_number', 'country', 'receive_email_notifications', 'receive_push_notifications', 'receive_sms_notifications']
-        read_only_fields = ['username']  # Make username uneditable if desired
-
-    def update(self, instance, validated_data):
-        instance.email = validated_data.get('email', instance.email)
-        instance.phone_number = validated_data.get('phone_number', instance.phone_number)
-        instance.country = validated_data.get('country', instance.country)
-        instance.receive_email_notifications = validated_data.get('receive_email_notifications', instance.receive_email_notifications)
-        instance.receive_push_notifications = validated_data.get('receive_push_notifications', instance.receive_push_notifications)
-        instance.receive_sms_notifications = validated_data.get('receive_sms_notifications', instance.receive_sms_notifications)
-        instance.save()
-        return instance
+        fields = [
+            'username',
+            'email',
+            'phone_number',
+            'country',
+            'receive_email_notifications',
+            'receive_sms_notifications',
+            'receive_push_notifications',
+        ]
 
     def validate(self, data):
-        country = data.get('country')
-        phone_number = data.get('phone_number')
+        country = data.get('country', None)
+        phone_number = data.get('phone_number', '')
 
+        # Now 'country' should be a Country instance or None
+        # If country is provided and we have a phone_number
         if country and phone_number:
-            # Ensure phone_number starts with the correct prefix
+            # country is a Country instance, so country.phone_prefix should be accessible
             if not phone_number.startswith(country.phone_prefix):
-                # Construct a more explicit message
-                # For example: "Wrong phone number format. Your number must start with +44 for United Kingdom."
-                msg = (
-                    f"Wrong phone number format. Your number must start with "
-                    f"{country.phone_prefix} for {country.name}."
+                raise serializers.ValidationError(
+                    f"Phone number must start with {country.phone_prefix} for {country.name}."
                 )
-                raise serializers.ValidationError({"detail": msg})
         return data
 
 
 class UserDeviceSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserDevice
-        fields = ['id', 'device_token']
+        fields = ['id', 'device_token', 'created_at']
