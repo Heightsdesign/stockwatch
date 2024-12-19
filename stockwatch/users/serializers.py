@@ -82,3 +82,4 @@ class UserDeviceSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserDevice
         fields = ['id', 'user', 'device_token', 'created_at', 'active', 'device_id']
+        read_only_fields = ['id', 'user', 'created_at', 'active']

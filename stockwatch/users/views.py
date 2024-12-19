@@ -34,6 +34,7 @@ class CountryListView(generics.ListAPIView):
     queryset = Country.objects.all()
     serializer_class = CountrySerializer
 
+
 class RegisterDeviceTokenView(APIView):
     permission_classes = [IsAuthenticated]
 

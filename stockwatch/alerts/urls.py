@@ -10,7 +10,7 @@ from .views import (
     IndicatorChainAlertViewSet,
     UserAlertDetailView,
     IndicatorDefinitionListView,
-    SendNotificationView
+    # SendNotificationView
 )
 
 router = DefaultRouter()
@@ -26,5 +26,5 @@ urlpatterns = [
     path('user-alerts/', UserAlertsView.as_view(), name='user-alerts'),
     path('alerts/<int:pk>/', UserAlertDetailView.as_view(), name='alert-detail'),
     path('indicators/', IndicatorDefinitionListView.as_view(), name='indicator-list'),
-    path('send-push-notification/', SendNotificationView.as_view(), name='send-push-notification'),
+    #path('send-push-notification/', SendNotificationView.as_view(), name='send-push-notification'),
 ]

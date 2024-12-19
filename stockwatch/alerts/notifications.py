@@ -14,13 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def send_push_notification(user, title, body):
-    """
-    Sends a push notification to all devices registered by the given user.
-
-    :param user: The user to whom the notifications should be sent.
-    :param title: Title of the notification.
-    :param body: Body text of the notification.
-    """
+    
     # Fetch all device tokens for this user
     device_tokens = UserDevice.objects.filter(user=user).values_list('device_token', flat=True)
 

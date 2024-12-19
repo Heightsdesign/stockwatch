@@ -25,7 +25,7 @@ from .serializers import (
     IndicatorDefinitionSerializer
 )
 
-from .tasks import send_push_notification
+"from .tasks import send_push_notification"
 
 
 class StockListView(generics.ListAPIView):
@@ -161,7 +161,7 @@ class UserAlertDetailView(generics.RetrieveUpdateDestroyAPIView):
 class IndicatorDefinitionListView(generics.ListAPIView):
     queryset = IndicatorDefinition.objects.all()
     serializer_class = IndicatorDefinitionSerializer
-
+"""
 class SendNotificationView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -176,4 +176,4 @@ class SendNotificationView(APIView):
         send_push_notification(request.user, title, body)
 
         return Response({'detail': 'Notification sent successfully.'}, status=200)
-
+"""
