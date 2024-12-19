@@ -34,21 +34,27 @@ class CountryListView(generics.ListAPIView):
     queryset = Country.objects.all()
     serializer_class = CountrySerializer
 
-
 class RegisterDeviceTokenView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         serializer = UserDeviceSerializer(data=request.data)
         if serializer.is_valid():
-            device_token = serializer.validated_data.get('device_token')
+            device_id = serializer.validated_data['device_id']
+            device_token = serializer.validated_data['device_token']
             user = request.user
 
-            if UserDevice.objects.filter(device_token=device_token).exists():
-                return Response({'detail': 'Device token already registered.'}, status=200)
+            # Try to find an existing record for this user/device_id
+            user_device, created = UserDevice.objects.update_or_create(
+                user=user,
+                device_id=device_id,
+                defaults={'device_token': device_token}
+            )
 
-            UserDevice.objects.create(user=user, device_token=device_token)
-            return Response({'detail': 'Device token registered successfully.'}, status=201)
+            if created:
+                return Response({'detail': 'Device token registered successfully.'}, status=201)
+            else:
+                return Response({'detail': 'Device token updated successfully.'}, status=200)
         return Response(serializer.errors, status=400)
 
 

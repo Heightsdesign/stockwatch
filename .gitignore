@@ -4,4 +4,5 @@ __pycache__/
 twilio_recovery_code.txt
 to_del.py
 node_modules/
+../node_modules/
 stockwatch-cd67b-firebase-adminsdk-ax6qw-1e21bf5f35.json

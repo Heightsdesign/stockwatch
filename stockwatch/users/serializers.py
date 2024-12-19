@@ -76,6 +76,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 
 class UserDeviceSerializer(serializers.ModelSerializer):
+    device_id = serializers.CharField(required=True)
+    device_token = serializers.CharField(required=True)
+
     class Meta:
         model = UserDevice
-        fields = ['id', 'device_token', 'created_at']
+        fields = ['id', 'user', 'device_token', 'created_at', 'active', 'device_id']

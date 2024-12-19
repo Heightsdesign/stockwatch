@@ -4,6 +4,7 @@
   },
   "devDependencies": {
     "@types/jasmine": "^5.1.5",
+    "@types/uuid": "^10.0.0",
     "jasmine-core": "^5.5.0"
   }
 }
