@@ -7,7 +7,9 @@ from .views import (
     UserDeviceListView,
     VerifyEmailView,
     VerifyPhoneView,
-    CustomRegisterView
+    CustomRegisterView,
+    ResendEmailVerificationView,
+    ResendPhoneVerificationView,
 )
 
 urlpatterns = [
@@ -19,4 +21,6 @@ urlpatterns = [
     path('verify-email/<uidb64>/<token>/', VerifyEmailView.as_view(), name='verify-email'),
     path('verify-phone/', VerifyPhoneView.as_view(), name='verify-phone'),
     path('registration/', CustomRegisterView.as_view(), name='custom-registration'),
+    path('resend-phone-verification/', ResendPhoneVerificationView.as_view(), name='resend-phone-verification'),
+    path('resend-email-verification/', ResendEmailVerificationView.as_view(), name='resend-email-verification'),
 ]

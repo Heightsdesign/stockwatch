@@ -165,6 +165,14 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.UserRateThrottle',
+        'rest_framework.throttling.AnonRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'user': '100/hour',  # Adjust as needed
+        'anon': '20/hour',  # Adjust as needed
+    }
 }
 
 REST_AUTH_SERIALIZERS = {
@@ -186,10 +194,13 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-ACCOUNT_EMAIL_VERIFICATION = 'none'
+# Allauth settings
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_USERNAME_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'  # 'none', 'optional', 'mandatory'
+ACCOUNT_AUTHENTICATION_METHOD = 'email'  # 'username', 'email', or 'username_email'
+ACCOUNT_USERNAME_REQUIRED = True  # As per your CustomUser model
+ACCOUNT_UNIQUE_EMAIL = True
+
 
 # AWS Credentials
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')

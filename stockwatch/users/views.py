@@ -1,25 +1,44 @@
 from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_decode
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.shortcuts import get_object_or_404
-from .serializers import UserProfileSerializer, CountrySerializer, UserDeviceSerializer, CustomRegisterSerializer
-from .models import CustomUser, Country, UserDevice
+from django.urls import reverse
+from django.utils.encoding import force_bytes
+from django.utils.decorators import method_decorator
+from django.contrib.auth.tokens import default_token_generator
+
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from dj_rest_auth.registration.views import RegisterView
+from alerts.notifications import send_email_notification, send_sms_notification
+
+import random
 import logging
 
+from .models import CustomUser, Country, UserDevice
+from .serializers import (
+    UserProfileSerializer,
+    CountrySerializer,
+    UserDeviceSerializer,
+    CustomRegisterSerializer,
+    VerifyPhoneSerializer,
+    SendPhoneVerificationSerializer
+)
+
 logger = logging.getLogger(__name__)
+
 
 class CustomRegisterView(RegisterView):
     """
     Custom registration view that allows unauthenticated users to register.
+    Sends verification email and SMS upon successful registration.
     """
     permission_classes = [AllowAny]
-    serializer_class = CustomRegisterSerializer  # Reference the actual class
+    serializer_class = CustomRegisterSerializer
 
     def create(self, request, *args, **kwargs):
         logger.debug("CustomRegisterView: Received registration request.")
@@ -27,10 +46,34 @@ class CustomRegisterView(RegisterView):
         serializer.is_valid(raise_exception=True)
         user = self.perform_create(serializer)
         logger.debug(f"CustomRegisterView: Created user {user.username}.")
+
+        # Send verification email
+        verification_link = request.build_absolute_uri(
+            reverse('verify-email', kwargs={
+                'uidb64': urlsafe_base64_encode(force_bytes(user.pk)),
+                'token': default_token_generator.make_token(user)
+            })
+        )
+        email_subject = "Verify Your Email Address"
+        email_message = f"Hi {user.username},\n\nPlease verify your email by clicking the link below:\n{verification_link}\n\nThank you!"
+        send_email_notification(user, email_subject, email_message)
+        logger.debug(f"CustomRegisterView: Sent verification email to {user.email}.")
+
+        # Generate phone verification code
+        verification_code = str(random.randint(100000, 999999))
+        user.phone_verification_code = verification_code
+        user.save()
+        logger.debug(f"CustomRegisterView: Generated phone verification code for {user.phone_number}.")
+
+        # Send verification SMS
+        sms_message = f"Hi {user.username}, your verification code is {verification_code}."
+        send_sms_notification(user, sms_message)
+        logger.debug(f"CustomRegisterView: Sent verification SMS to {user.phone_number}.")
+
         headers = self.get_success_headers(serializer.data)
         return Response(
             {
-                "detail": "User registered successfully.",
+                "detail": "User registered successfully. Please verify your email and phone number.",
                 "username": user.username,
                 "email": user.email,
             },
@@ -102,6 +145,8 @@ class UserDeviceListView(APIView):
 
 
 class VerifyEmailView(APIView):
+
+    throttle_classes = [UserRateThrottle, AnonRateThrottle]
     def get(self, request, uidb64, token):
         try:
             uid = urlsafe_base64_decode(uidb64).decode()
@@ -117,15 +162,79 @@ class VerifyEmailView(APIView):
 
 
 class VerifyPhoneView(APIView):
+    """
+    Verifies the user's phone number using the code sent via SMS.
+    """
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [UserRateThrottle, AnonRateThrottle]
+
+    def post(self, request):
+        serializer = VerifyPhoneSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        code = serializer.validated_data['code']
+
+        user = request.user
+
+        if user.phone_verification_code != code:
+            return Response({"error": "Invalid verification code."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.is_phone_verified = True
+        user.phone_verification_code = None  # Clear the code after verification
+        user.save()
+        return Response({"message": "Phone number successfully verified."}, status=status.HTTP_200_OK)
+
+
+class ResendEmailVerificationView(APIView):
+    """
+    Resends the email verification link to the user.
+    """
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [UserRateThrottle, AnonRateThrottle]
     def post(self, request):
         user = request.user
-        code = request.data.get("code")
-        if not code:
-            return Response({"error": "Verification code is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        if str(user.phone_verification_code) == code:
-            user.is_phone_verified = True
-            user.phone_verification_code = None  # Clear the code after verification
-            user.save()
-            return Response({"message": "Phone number successfully verified."}, status=status.HTTP_200_OK)
-        return Response({"error": "Invalid verification code."}, status=status.HTTP_400_BAD_REQUEST)
+        if user.is_email_verified:
+            return Response({"detail": "Email already verified."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Generate new verification token
+        token = default_token_generator.make_token(user)
+        uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+
+        # Construct verification link
+        verification_link = request.build_absolute_uri(
+            reverse('verify-email', kwargs={'uidb64': uidb64, 'token': token})
+        )
+
+        # Send verification email
+        email_subject = "Verify Your Email Address"
+        email_message = f"Hi {user.username},\n\nPlease verify your email by clicking the link below:\n{verification_link}\n\nThank you!"
+        send_email_notification(user, email_subject, email_message)
+        logger.debug(f"ResendEmailVerificationView: Sent verification email to {user.email}.")
+
+        return Response({"detail": "Verification email resent."}, status=status.HTTP_200_OK)
+
+
+class ResendPhoneVerificationView(APIView):
+    """
+    Resends the phone verification code via SMS.
+    """
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [UserRateThrottle, AnonRateThrottle]
+    def post(self, request):
+        user = request.user
+
+        if user.is_phone_verified:
+            return Response({"detail": "Phone number already verified."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Generate a new verification code
+        verification_code = str(random.randint(100000, 999999))
+        user.phone_verification_code = verification_code
+        user.save()
+        logger.debug(f"ResendPhoneVerificationView: Generated new verification code for {user.phone_number}.")
+
+        # Send verification SMS
+        sms_message = f"Hi {user.username}, your new verification code is {verification_code}."
+        send_sms_notification(user, sms_message)
+        logger.debug(f"ResendPhoneVerificationView: Sent verification SMS to {user.phone_number}.")
+
+        return Response({"detail": "Verification code resent via SMS."}, status=status.HTTP_200_OK)

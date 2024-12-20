@@ -24,6 +24,7 @@ class CustomUser(AbstractUser):
     subscription_plan = models.CharField(max_length=5, default="tier0")
     is_email_verified = models.BooleanField(default=False)
     is_phone_verified = models.BooleanField(default=False)
+    phone_verification_code = models.CharField(max_length=6, null=True, blank=True)
     country = models.ForeignKey(Country, on_delete=models.SET_NULL, null=True, blank=True)
     receive_email_notifications = models.BooleanField(default=True)
     receive_sms_notifications = models.BooleanField(default=False)

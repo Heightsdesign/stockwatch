@@ -18,8 +18,10 @@ class CustomUserDetailsSerializer(serializers.ModelSerializer):
                   'receive_push_notifications', 'receive_direct_messages')
 
 class CustomRegisterSerializer(RegisterSerializer):
+
     email = serializers.EmailField(required=True)
     username = serializers.CharField(required=True)
+    phone_number = serializers.CharField(required=True)
 
     receive_email_notifications = serializers.BooleanField(default=True)
     receive_push_notifications = serializers.BooleanField(default=True)
@@ -35,24 +37,34 @@ class CustomRegisterSerializer(RegisterSerializer):
             raise serializers.ValidationError("This username is already taken.")
         return value
 
+    def validate_phone_number(self, value):
+        if CustomUser.objects.filter(phone_number=value).exists():
+            raise serializers.ValidationError("A user with this phone number already exists.")
+        return value
+
     def get_cleaned_data(self):
         data = super().get_cleaned_data()
         data['email'] = self.validated_data.get('email', '')
         data['username'] = self.validated_data.get('username', '')
+        data['phone_number'] = self.validated_data.get('phone_number', '')
         data['receive_email_notifications'] = self.validated_data.get('receive_email_notifications', True)
         data['receive_push_notifications'] = self.validated_data.get('receive_push_notifications', True)
         data['receive_direct_messages'] = self.validated_data.get('receive_direct_messages', True)
+
         return data
 
     def save(self, request):
         user = super().save(request)
         user.email = self.cleaned_data.get('email')
         user.username = self.cleaned_data.get('username')
+        user.phone_number = self.cleaned_data.get('phone_number')
         user.receive_email_notifications = self.cleaned_data.get('receive_email_notifications')
         user.receive_push_notifications = self.cleaned_data.get('receive_push_notifications')
         user.receive_direct_messages = self.cleaned_data.get('receive_direct_messages')
         user.save()
         return user
+
+
 
 class UserProfileSerializer(serializers.ModelSerializer):
     country = serializers.SlugRelatedField(
@@ -94,3 +106,11 @@ class UserDeviceSerializer(serializers.ModelSerializer):
         model = UserDevice
         fields = ['id', 'user', 'device_token', 'created_at', 'active', 'device_id']
         read_only_fields = ['id', 'user', 'created_at', 'active']
+
+
+class SendPhoneVerificationSerializer(serializers.Serializer):
+    phone_number = serializers.CharField(max_length=15)
+
+
+class VerifyPhoneSerializer(serializers.Serializer):
+    code = serializers.CharField(max_length=6)
