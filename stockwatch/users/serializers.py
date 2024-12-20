@@ -4,6 +4,7 @@ from dj_rest_auth.registration.serializers import RegisterSerializer
 from .models import CustomUser
 from .models import Country
 
+
 class CountrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Country
@@ -16,17 +17,28 @@ class CustomUserDetailsSerializer(serializers.ModelSerializer):
         fields = ('id', 'username', 'email', 'receive_email_notifications',
                   'receive_push_notifications', 'receive_direct_messages')
 
-
 class CustomRegisterSerializer(RegisterSerializer):
     email = serializers.EmailField(required=True)
+    username = serializers.CharField(required=True)
 
     receive_email_notifications = serializers.BooleanField(default=True)
     receive_push_notifications = serializers.BooleanField(default=True)
     receive_direct_messages = serializers.BooleanField(default=True)
 
+    def validate_email(self, value):
+        if CustomUser.objects.filter(email=value).exists():
+            raise serializers.ValidationError("A user with this email already exists.")
+        return value
+
+    def validate_username(self, value):
+        if CustomUser.objects.filter(username=value).exists():
+            raise serializers.ValidationError("This username is already taken.")
+        return value
+
     def get_cleaned_data(self):
         data = super().get_cleaned_data()
         data['email'] = self.validated_data.get('email', '')
+        data['username'] = self.validated_data.get('username', '')
         data['receive_email_notifications'] = self.validated_data.get('receive_email_notifications', True)
         data['receive_push_notifications'] = self.validated_data.get('receive_push_notifications', True)
         data['receive_direct_messages'] = self.validated_data.get('receive_direct_messages', True)
@@ -34,6 +46,8 @@ class CustomRegisterSerializer(RegisterSerializer):
 
     def save(self, request):
         user = super().save(request)
+        user.email = self.cleaned_data.get('email')
+        user.username = self.cleaned_data.get('username')
         user.receive_email_notifications = self.cleaned_data.get('receive_email_notifications')
         user.receive_push_notifications = self.cleaned_data.get('receive_push_notifications')
         user.receive_direct_messages = self.cleaned_data.get('receive_direct_messages')
@@ -64,10 +78,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         country = data.get('country', None)
         phone_number = data.get('phone_number', '')
 
-        # Now 'country' should be a Country instance or None
-        # If country is provided and we have a phone_number
         if country and phone_number:
-            # country is a Country instance, so country.phone_prefix should be accessible
             if not phone_number.startswith(country.phone_prefix):
                 raise serializers.ValidationError(
                     f"Phone number must start with {country.phone_prefix} for {country.name}."

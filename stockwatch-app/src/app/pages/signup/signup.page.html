@@ -1,37 +1,83 @@
-<ion-content class="ion-padding">
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Sign Up</ion-title>
+  </ion-toolbar>
+</ion-header>
 
-  <div class="presentation">
-    <h1>Create an Account</h1>
-    <p>Join StockWatch to monitor stock prices and set custom alerts.</p>
-  </div>
-
+<ion-content>
   <form [formGroup]="signupForm" (ngSubmit)="onSignup()">
     <ion-item>
       <ion-label position="floating">Username</ion-label>
-      <ion-input type="text" formControlName="username" required></ion-input>
+      <ion-input
+        type="text"
+        formControlName="username"
+        required
+      ></ion-input>
     </ion-item>
+    <ion-note
+      *ngIf="signupForm.get('username')?.hasError('required') && signupForm.get('username')?.touched"
+      color="danger"
+    >
+      Username is required.
+    </ion-note>
+    <ion-note
+      *ngIf="signupForm.get('username')?.hasError('minlength') && signupForm.get('username')?.touched"
+      color="danger"
+    >
+      Username must be at least 3 characters long.
+    </ion-note>
+
     <ion-item>
       <ion-label position="floating">Email</ion-label>
-      <ion-input type="email" formControlName="email" required></ion-input>
+      <ion-input
+        type="email"
+        formControlName="email"
+        required
+      ></ion-input>
     </ion-item>
+    <ion-note
+      *ngIf="signupForm.get('email')?.hasError('email') && signupForm.get('email')?.touched"
+      color="danger"
+    >
+      Please enter a valid email.
+    </ion-note>
+
     <ion-item>
       <ion-label position="floating">Password</ion-label>
-      <ion-input type="password" formControlName="password1" required></ion-input>
+      <ion-input
+        type="password"
+        formControlName="password1"
+        required
+      ></ion-input>
     </ion-item>
+    <ion-note
+      *ngIf="signupForm.get('password1')?.hasError('minlength') && signupForm.get('password1')?.touched"
+      color="danger"
+    >
+      Password must be at least 8 characters long.
+    </ion-note>
+
     <ion-item>
       <ion-label position="floating">Confirm Password</ion-label>
-      <ion-input type="password" formControlName="password2" required></ion-input>
+      <ion-input
+        type="password"
+        formControlName="password2"
+        required
+      ></ion-input>
     </ion-item>
-    <ion-button expand="block" type="submit" [disabled]="!signupForm.valid">
+
+    <ion-note
+      *ngIf="
+        signupForm.get('password2')?.value !== signupForm.get('password1')?.value &&
+        signupForm.get('password2')?.touched
+      "
+      color="danger"
+    >
+      Passwords do not match.
+    </ion-note>
+
+    <ion-button expand="full" type="submit" [disabled]="signupForm.invalid">
       Sign Up
     </ion-button>
   </form>
-
-  <div class="login-link">
-    <p>
-      Already have an account?
-      <a [routerLink]="['/login']">Log in here</a>
-    </p>
-  </div>
-
 </ion-content>

@@ -6,7 +6,6 @@ import { Observable } from 'rxjs';
 import { Stock } from '../models/stock.model';
 
 
-
 @Injectable({
   providedIn: 'root',
 })
@@ -28,10 +27,10 @@ export class ApiService {
     return this.http.post<any>(`${this.credsUrl}/api-token-auth/`, credentials);
   }
 
-  // Add other methods as needed
   signup(data: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/auth/registration/`, data);
+    return this.http.post(`${this.credsUrl}/registration/`, data);
   }
+
 
   getStockDetails(symbol: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/stocks/${symbol}/`);
@@ -116,5 +115,14 @@ export class ApiService {
       return this.http.get<any[]>(url);
     }
 
+   // Verify email using UID and token
+  verifyEmail(uid: string, token: string): Observable<any> {
+    return this.http.get(`${this.credsUrl}verify-email/${uid}/${token}/`);
+  }
+
+  // Verify phone number using a verification code
+  verifyPhone(code: string): Observable<any> {
+    return this.http.post(`${this.credsUrl}verify-phone/`, { code });
+  }
 
 }

@@ -22,7 +22,6 @@ urlpatterns = [
     path('api/', include('alerts.urls')),
     path('api/auth/', include('dj_rest_auth.urls')),
     path('creds/', include('users.urls')),
-    path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
 
 ]
 

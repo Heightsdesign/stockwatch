@@ -22,18 +22,19 @@ export class SignupPage implements OnInit {
 
   ngOnInit() {
     this.signupForm = this.fb.group({
-      username: ['', [Validators.required]],
+      username: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
-      password1: ['', [Validators.required]],
+      password1: ['', [Validators.required, Validators.minLength(8)]],
       password2: ['', [Validators.required]],
     });
   }
 
   async onSignup() {
+    // Check for password mismatch
     if (this.signupForm.value.password1 !== this.signupForm.value.password2) {
       const alert = await this.alertController.create({
         header: 'Password Mismatch',
-        message: 'Passwords do not match.',
+        message: 'Passwords do not match. Please try again.',
         buttons: ['OK'],
       });
       await alert.present();
@@ -45,27 +46,41 @@ export class SignupPage implements OnInit {
     });
     await loading.present();
 
+    // Call the API service
     this.apiService.signup(this.signupForm.value).subscribe(
       async (res) => {
         await loading.dismiss();
-        // Optionally, log the user in automatically after registration
-        // localStorage.setItem('token', res.token);
-        // this.router.navigate(['/home']);
 
-        // Or navigate to login page
         const alert = await this.alertController.create({
           header: 'Registration Successful',
           message: 'Your account has been created. Please log in.',
           buttons: ['OK'],
         });
         await alert.present();
+
+        // Redirect to login page
         this.router.navigate(['/login']);
       },
       async (err) => {
         await loading.dismiss();
+
+        // Handle error response
+        let errorMessage = 'An error occurred. Please try again later.';
+        if (err.error) {
+          if (err.error.username) {
+            errorMessage = err.error.username.join(' ');
+          } else if (err.error.email) {
+            errorMessage = err.error.email.join(' ');
+          } else if (err.error.password1) {
+            errorMessage = err.error.password1.join(' ');
+          } else if (err.error.non_field_errors) {
+            errorMessage = err.error.non_field_errors.join(' ');
+          }
+        }
+
         const alert = await this.alertController.create({
           header: 'Registration Failed',
-          message: 'An error occurred during registration.',
+          message: errorMessage,
           buttons: ['OK'],
         });
         await alert.present();

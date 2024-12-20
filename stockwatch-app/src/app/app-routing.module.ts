@@ -46,6 +46,16 @@ const routes: Routes = [
     path: 'account',
     loadChildren: () => import('./account/account.module').then( m => m.AccountPageModule)
   },
+
+  {
+    path: 'verify-email/:uid/:token',
+    loadChildren: () => import('./email-verification/email-verification.module').then(m => m.EmailVerificationPageModule)
+  },
+  {
+    path: 'phone-verification',
+    loadChildren: () => import('./phone-verification/phone-verification.module').then( m => m.PhoneVerificationPageModule)
+  },
+
 ];
 
 @NgModule({

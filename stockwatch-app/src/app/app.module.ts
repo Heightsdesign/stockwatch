@@ -13,6 +13,7 @@ import { SharedModule } from './shared/shared.module'; // Import the shared modu
 import { initializeApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
+
 const firebaseConfig = {
   apiKey: "AIzaSyAc2NyN-dnUAViG9AVSDGRgbUgFpbJuv10",
   authDomain: "stockwatch-cd67b.firebaseapp.com",

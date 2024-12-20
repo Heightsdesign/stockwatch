@@ -12,6 +12,7 @@ class Country(models.Model):
     def __str__(self):
         return self.name
 
+
 class CustomUser(AbstractUser):
     """
     Custom user model that extends Django's AbstractUser.
@@ -19,6 +20,10 @@ class CustomUser(AbstractUser):
     """
     email = models.EmailField(unique=True)
     phone_number = PhoneNumberField(blank=True, null=True)
+    username = models.CharField(max_length=150, unique=True)
+    subscription_plan = models.CharField(max_length=5, default="tier0")
+    is_email_verified = models.BooleanField(default=False)
+    is_phone_verified = models.BooleanField(default=False)
     country = models.ForeignKey(Country, on_delete=models.SET_NULL, null=True, blank=True)
     receive_email_notifications = models.BooleanField(default=True)
     receive_sms_notifications = models.BooleanField(default=False)
@@ -27,7 +32,6 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.username
-
 
 class UserDevice(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='devices')
