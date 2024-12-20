@@ -8,6 +8,7 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from .notifications import send_sms_notification, send_push_notification
 import pandas as pd
+import math
 
 
 from .models import Alert, IndicatorChainAlert, IndicatorCondition, Indicator
@@ -183,6 +184,37 @@ def resample_data(df, timeframe):
     else:
         raise ValueError(f"Unknown timeframe: {timeframe}")
 
+def get_valid_period(required_days):
+    """
+    Maps the required number of days to the closest valid yfinance period that meets or exceeds the required days.
+
+    Args:
+        required_days (int): The number of days required for the indicator calculation.
+
+    Returns:
+        str: A valid yfinance period string.
+    """
+    # Define valid yfinance periods with their approximate day equivalents
+    period_days = [
+        ('1d', 1),
+        ('5d', 5),
+        ('1mo', 30),
+        ('3mo', 90),
+        ('6mo', 180),
+        ('1y', 365),
+        ('2y', 730),
+        ('5y', 1825),
+        ('10y', 3650),
+        ('ytd', None),  # Special case: Year-to-date
+        ('max', None)    # Special case: Maximum available data
+    ]
+
+    for period, days in period_days:
+        if days and days >= required_days:
+            return period
+    # If required_days exceed the largest defined period, return 'max'
+    return 'max'
+
 
 def process_indicator_chain_alert(alert):
     print(f"[DEBUG] process_indicator_chain_alert called for Alert {alert.id}, Symbol: {alert.stock.symbol}")
@@ -198,35 +230,84 @@ def process_indicator_chain_alert(alert):
 
     all_conditions_met = True
 
-    # Timeframe map (unchanged)
-    interval_map = {
-        '1MIN': ('1d', '1m'),
-        '5MIN': ('1d', '5m'),
-        '15MIN': ('1d', '15m'),
-        '30MIN': ('1d', '30m'),
-        '1H': ('5d', '60m'),
-        '4H': ('1mo', '240m'),
-        '1D': ('1mo', '1d')
+    # Define data points per day for each timeframe
+    data_points_per_day = {
+        '1MIN': 390,   # Assuming 6.5 trading hours
+        '5MIN': 78,
+        '15MIN': 26,
+        '30MIN': 13,
+        '1H': 6,
+        '4H': 1,
+        '1D': 1
     }
 
+    # Determine maximum required length per timeframe
+    max_length_per_timeframe = {}
+    for condition in conditions:
+        timeframe = condition.indicator_timeframe
+        length = condition.indicator_parameters.get('length', 14)
+        if timeframe in max_length_per_timeframe:
+            if length > max_length_per_timeframe[timeframe]:
+                max_length_per_timeframe[timeframe] = length
+        else:
+            max_length_per_timeframe[timeframe] = length
+
+    # Calculate required number of days per timeframe using the helper function
+    required_data = {}
+    for timeframe, max_length in max_length_per_timeframe.items():
+        points_per_day = data_points_per_day.get(timeframe, 390)  # Default to '1MIN' data points
+        required_days = math.ceil(max_length / points_per_day)
+        # Add a buffer of 10% to ensure data sufficiency
+        buffer_days = max(1, math.ceil(required_days * 0.1))
+        total_days = required_days + buffer_days
+        # Use the helper function to get a valid period
+        valid_period = get_valid_period(total_days)
+        required_data[timeframe] = valid_period
+
+    # Fetch data per timeframe and cache it
+    data_cache = {}
+    for timeframe, period in required_data.items():
+        interval = {
+            '1MIN': '1m',
+            '5MIN': '5m',
+            '15MIN': '15m',
+            '30MIN': '30m',
+            '1H': '60m',
+            '4H': '240m',
+            '1D': '1d'
+        }.get(timeframe, '1d')  # Default to '1d' if timeframe not found
+
+        try:
+            main_data = get_stock_data(alert.stock.symbol, period=period, interval=interval)
+            if main_data.empty:
+                print(f"[DEBUG] No main data returned for {alert.stock.symbol} with timeframe {timeframe}. Condition cannot be met.")
+                all_conditions_met = False
+                break
+            print(f"[DEBUG] Main data fetched for {alert.stock.symbol} with timeframe {timeframe}, period: {period}, tail:")
+            print(main_data.tail())
+            data_cache[timeframe] = main_data
+        except Exception as e:
+            print(f"[DEBUG] Error fetching main data for {alert.stock.symbol} with timeframe {timeframe}: {e}")
+            all_conditions_met = False
+            break
+
+    if not data_cache:
+        print(f"[DEBUG] No data fetched for any timeframe. Cannot process alert {alert.id}.")
+        return
+
+    # Process each condition using the cached data
     for condition in conditions:
         print(f"[DEBUG] Evaluating condition ID: {condition.id}, Position: {condition.position_in_chain}")
         print(f"[DEBUG] Main indicator: {condition.indicator.display_name} (name: {condition.indicator.name})")
         print(f"[DEBUG] Main indicator line: {condition.indicator_line}, Timeframe: {condition.indicator_timeframe}")
         print(f"[DEBUG] Main indicator parameters: {condition.indicator_parameters or {}}")
 
-        # Fetch main indicator data
-        try:
-            period, interval = interval_map.get(condition.indicator_timeframe, ('1mo', '1d'))
-            main_data = get_stock_data(alert.stock.symbol, period=period, interval=interval)
-            if main_data.empty:
-                print(f"[DEBUG] No main data returned for {alert.stock.symbol} with timeframe {condition.indicator_timeframe}. Condition cannot be met.")
-                all_conditions_met = False
-                break
-            print(f"[DEBUG] Main data fetched for {alert.stock.symbol}, tail:")
-            print(main_data.tail())
-        except Exception as e:
-            print(f"[DEBUG] Error fetching main data for {alert.stock.symbol}: {e}")
+        # Retrieve pre-fetched main_data for the condition's timeframe
+        timeframe = condition.indicator_timeframe
+        main_data = data_cache.get(timeframe)
+
+        if main_data is None:
+            print(f"[DEBUG] No data available for timeframe {timeframe}. Condition cannot be met.")
             all_conditions_met = False
             break
 
@@ -250,15 +331,20 @@ def process_indicator_chain_alert(alert):
             all_conditions_met = False
             break
 
-        # Determine the comparison value
+        # Determine the comparison value based on condition's value_type
         if condition.value_type == 'NUMBER':
             comparison_value = condition.value_number
             print(f"[DEBUG] Comparison type: NUMBER, value: {comparison_value}")
 
         elif condition.value_type == 'PRICE':
             # Last close value from main_data
-            comparison_value = float(main_data['close'].iloc[-1])
-            print(f"[DEBUG] Comparison type: PRICE, last close: {comparison_value}")
+            try:
+                comparison_value = float(main_data['close'].iloc[-1])
+                print(f"[DEBUG] Comparison type: PRICE, last close: {comparison_value}")
+            except (IndexError, ValueError) as e:
+                print(f"[DEBUG] Error retrieving last close price: {e}")
+                all_conditions_met = False
+                break
 
         elif condition.value_type == 'INDICATOR_LINE':
             if not condition.value_indicator:
@@ -270,22 +356,43 @@ def process_indicator_chain_alert(alert):
             print(f"[DEBUG] Value indicator line: {condition.value_indicator_line}, Timeframe: {condition.value_timeframe}")
             print(f"[DEBUG] Value indicator parameters: {condition.value_indicator_parameters or {}}")
 
-            # Fetch value indicator data
-            try:
-                period_val, interval_val = interval_map.get(condition.value_timeframe, ('1mo', '1d'))
-                value_data = get_stock_data(alert.stock.symbol, period=period_val, interval=interval_val)
-                if value_data.empty:
-                    print(f"[DEBUG] No value data returned for {alert.stock.symbol} with timeframe {condition.value_timeframe}. Condition cannot be met.")
+            # Retrieve pre-fetched value_data for the condition's value_timeframe
+            value_timeframe = condition.value_timeframe
+            value_data = data_cache.get(value_timeframe)
+
+            if value_data is None:
+                # Determine the required length for the value_indicator
+                value_length = condition.value_indicator_parameters.get('length', 14)
+                points_per_day_val = data_points_per_day.get(value_timeframe, 390)
+                required_days_val = math.ceil(value_length / points_per_day_val)
+                buffer_days_val = max(1, math.ceil(required_days_val * 0.1))
+                total_days_val = required_days_val + buffer_days_val
+                # Use the helper function to get a valid period
+                valid_period_val = get_valid_period(total_days_val)
+
+                interval_val = {
+                    '1MIN': '1m',
+                    '5MIN': '5m',
+                    '15MIN': '15m',
+                    '30MIN': '30m',
+                    '1H': '60m',
+                    '4H': '240m',
+                    '1D': '1d'
+                }.get(value_timeframe, '1d')  # Default to '1d' if timeframe not found
+
+                try:
+                    value_data = get_stock_data(alert.stock.symbol, period=valid_period_val, interval=interval_val)
+                    if value_data.empty:
+                        print(f"[DEBUG] No value data returned for {alert.stock.symbol} with timeframe {value_timeframe}. Condition cannot be met.")
+                        all_conditions_met = False
+                        break
+                    print(f"[DEBUG] Value indicator data fetched for {alert.stock.symbol} with timeframe {value_timeframe}, period: {valid_period_val}, tail:")
+                    print(value_data.tail())
+                    data_cache[value_timeframe] = value_data  # Cache the fetched value_data
+                except Exception as e:
+                    print(f"[DEBUG] Error fetching value indicator data for {alert.stock.symbol} with timeframe {value_timeframe}: {e}")
                     all_conditions_met = False
                     break
-                print("[DEBUG] Value indicator data tail:")
-                print(value_data.tail())
-            except Exception as e:
-                print(f"[DEBUG] Error fetching value indicator data for {alert.stock.symbol}: {e}")
-                all_conditions_met = False
-                break
-
-            parameters_comp = condition.value_indicator_parameters or {}
 
             # Calculate the comparison indicator value (also returning a float now)
             try:
@@ -293,7 +400,7 @@ def process_indicator_chain_alert(alert):
                     indicator_name=condition.value_indicator.name,
                     df=value_data,
                     line=condition.value_indicator_line,
-                    parameters=parameters_comp
+                    parameters=condition.value_indicator_parameters or {}
                 )
                 if comparison_value is None:
                     print("[DEBUG] calculate_indicator returned None for the comparison indicator. Condition cannot be met.")
@@ -309,7 +416,7 @@ def process_indicator_chain_alert(alert):
             all_conditions_met = False
             break
 
-        # Evaluate the condition
+        # Evaluate the condition based on the operator
         print(f"[DEBUG] Evaluating condition operator: {condition.condition_operator}")
         print(f"[DEBUG] Indicator value: {indicator_value}, Comparison value: {comparison_value}")
 
@@ -336,5 +443,3 @@ def process_indicator_chain_alert(alert):
         alert.save()
     else:
         print(f"[DEBUG] Not all conditions were met for alert {alert.id}. No notification triggered.")
-
-
