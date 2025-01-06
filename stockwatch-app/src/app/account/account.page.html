@@ -2,6 +2,12 @@
   <app-navbar></app-navbar>
   <ion-toolbar color="primary">
     <ion-title>Account Settings</ion-title>
+    <!-- Pencil icon for toggling edit mode -->
+    <ion-buttons slot="end">
+      <ion-button (click)="toggleEditMode()">
+        <ion-icon slot="icon-only" name="create"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
@@ -9,16 +15,28 @@
   <ion-list>
     <ion-item>
       <ion-label position="stacked">Username</ion-label>
-      <ion-input [(ngModel)]="user.username" readonly></ion-input>
-    </ion-item>
-    <ion-item>
-      <ion-label position="stacked">Email</ion-label>
-      <ion-input [(ngModel)]="user.email" type="email"></ion-input>
+      <ion-input
+        [(ngModel)]="user.username"
+        [readonly]="!editMode"
+      ></ion-input>
     </ion-item>
 
-     <ion-item>
+    <ion-item>
+      <ion-label position="stacked">Email</ion-label>
+      <ion-input
+        [(ngModel)]="user.email"
+        type="email"
+        [readonly]="!editMode"
+      ></ion-input>
+    </ion-item>
+
+    <ion-item>
       <ion-label>Country</ion-label>
-      <ion-select [(ngModel)]="selectedCountry" (ionChange)="updatePhonePrefix()">
+      <ion-select
+        [(ngModel)]="selectedCountry"
+        (ionChange)="updatePhonePrefix()"
+        [disabled]="!editMode"
+      >
         <ion-select-option *ngFor="let country of countries" [value]="country">
           {{ country.name }}
         </ion-select-option>
@@ -26,13 +44,23 @@
     </ion-item>
 
     <ion-item>
-      <ion-label position="stacked">Phone Number</ion-label>
+      <ion-label position="stacked">
+        Phone Number
+        <!-- Show verification status label -->
+        <ion-badge *ngIf="user.is_phone_verified" color="success" style="margin-left: 8px;">
+          Verified
+        </ion-badge>
+        <ion-badge *ngIf="!user.is_phone_verified" color="warning" style="margin-left: 8px;">
+          Unverified
+        </ion-badge>
+      </ion-label>
       <ion-input
         type="tel"
         [(ngModel)]="user.phone_number"
         [placeholder]="phonePrefix"
-        maxlength="15">
-      </ion-input>
+        maxlength="15"
+        [readonly]="!editMode"
+      ></ion-input>
     </ion-item>
 
     <ion-item-divider>
@@ -45,19 +73,28 @@
     </ion-item>
     <ion-item>
       <ion-label>SMS Notifications</ion-label>
-      <ion-toggle [(ngModel)]="user.receive_sms_notifications"></ion-toggle>
+      <ion-toggle
+        [(ngModel)]="user.receive_sms_notifications"
+        (ionChange)="onToggleSMSNotifications($event)"
+      ></ion-toggle>
     </ion-item>
-    <!-- If push toggle is visible, show the toggle -->
+
     <ion-item *ngIf="showPushToggle">
       <ion-label>Push Notifications</ion-label>
       <ion-toggle [(ngModel)]="user.receive_push_notifications"></ion-toggle>
     </ion-item>
 
-    <!-- If push toggle is not visible but we have a notificationMessage, show a message to the user -->
     <ion-item *ngIf="!showPushToggle && notificationMessage">
       <ion-label>{{ notificationMessage }}</ion-label>
     </ion-item>
   </ion-list>
 
-  <ion-button expand="full" (click)="updateUserProfile()">Save Changes</ion-button>
+  <!-- Only show the Save Changes button if editMode is true -->
+  <ion-button
+    expand="full"
+    (click)="updateUserProfile()"
+    *ngIf="editMode"
+  >
+    Save Changes
+  </ion-button>
 </ion-content>

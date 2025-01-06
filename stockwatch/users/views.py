@@ -31,11 +31,13 @@ from .serializers import (
 
 logger = logging.getLogger(__name__)
 
+import random  # Ensure this import exists at the top
 
 class CustomRegisterView(RegisterView):
     """
     Custom registration view that allows unauthenticated users to register.
-    Sends verification email and SMS upon successful registration.
+    Sends verification email upon successful registration.
+    Sends verification SMS only if phone number is provided and SMS notifications are enabled.
     """
     permission_classes = [AllowAny]
     serializer_class = CustomRegisterSerializer
@@ -59,27 +61,32 @@ class CustomRegisterView(RegisterView):
         send_email_notification(user, email_subject, email_message)
         logger.debug(f"CustomRegisterView: Sent verification email to {user.email}.")
 
-        # Generate phone verification code
-        verification_code = str(random.randint(100000, 999999))
-        user.phone_verification_code = verification_code
-        user.save()
-        logger.debug(f"CustomRegisterView: Generated phone verification code for {user.phone_number}.")
+        # Conditionally send SMS verification
+        if user.phone_number and user.receive_sms_notifications:
+            verification_code = str(random.randint(100000, 999999))
+            user.phone_verification_code = verification_code
+            user.save()
+            logger.debug(f"CustomRegisterView: Generated phone verification code for {user.phone_number}.")
 
-        # Send verification SMS
-        sms_message = f"Hi {user.username}, your verification code is {verification_code}."
-        send_sms_notification(user, sms_message)
-        logger.debug(f"CustomRegisterView: Sent verification SMS to {user.phone_number}.")
+            # Send verification SMS
+            sms_message = f"Hi {user.username}, your verification code is {verification_code}."
+            send_sms_notification(user, sms_message)
+            logger.debug(f"CustomRegisterView: Sent verification SMS to {user.phone_number}.")
+        else:
+            logger.debug("CustomRegisterView: SMS verification skipped (no phone number or SMS notifications disabled).")
 
         headers = self.get_success_headers(serializer.data)
         return Response(
             {
-                "detail": "User registered successfully. Please verify your email and phone number.",
+                "detail": "User registered successfully. Please verify your email."
+                + (" Also, please verify your phone number via SMS." if user.phone_number and user.receive_sms_notifications else ""),
                 "username": user.username,
                 "email": user.email,
             },
             status=status.HTTP_201_CREATED,
             headers=headers
         )
+
 
 class CustomAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
@@ -181,6 +188,13 @@ class VerifyPhoneView(APIView):
         user.is_phone_verified = True
         user.phone_verification_code = None  # Clear the code after verification
         user.save()
+
+        logger.debug(
+            f"VerifyPhoneView: user={request.user.pk} {request.user.email}, "
+            f"code_in_db='{request.user.phone_verification_code}', "
+            f"code_submitted='{code}'"
+        )
+
         return Response({"message": "Phone number successfully verified."}, status=status.HTTP_200_OK)
 
 
@@ -190,6 +204,7 @@ class ResendEmailVerificationView(APIView):
     """
     permission_classes = [IsAuthenticated]
     throttle_classes = [UserRateThrottle, AnonRateThrottle]
+
     def post(self, request):
         user = request.user
 
@@ -211,6 +226,7 @@ class ResendEmailVerificationView(APIView):
         send_email_notification(user, email_subject, email_message)
         logger.debug(f"ResendEmailVerificationView: Sent verification email to {user.email}.")
 
+
         return Response({"detail": "Verification email resent."}, status=status.HTTP_200_OK)
 
 
@@ -220,6 +236,7 @@ class ResendPhoneVerificationView(APIView):
     """
     permission_classes = [IsAuthenticated]
     throttle_classes = [UserRateThrottle, AnonRateThrottle]
+
     def post(self, request):
         user = request.user
 

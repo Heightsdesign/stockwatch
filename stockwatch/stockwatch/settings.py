@@ -19,7 +19,7 @@ import logging
 import firebase_admin
 from firebase_admin import credentials
 
-logging.basicConfig(level=logging.DEBUG)
+
 
 LOGGING = {
     'version': 1,
@@ -28,12 +28,25 @@ LOGGING = {
         'console': {
             'class': 'logging.StreamHandler',
         },
+        'sms_file': {
+            'class': 'logging.FileHandler',
+            'filename': 'sms_logs.log',  # Optional: Separate log file for SMS
+            'formatter': 'verbose',
+        },
+    },
+    'formatters': {
+        'verbose': {
+            'format': '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s',
+            'datefmt': '%d/%b/%Y %H:%M:%S',
+        },
     },
     'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
+        'alerts.notifications': {  # Logger for your notifications module
+            'handlers': ['console', 'sms_file'],
+            'level': 'INFO',  # Change to 'DEBUG' for more detailed logs
+            'propagate': True,
         },
+        # ... other loggers
     },
 }
 

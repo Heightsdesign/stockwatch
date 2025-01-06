@@ -16,6 +16,8 @@ export class AccountPage implements OnInit {
     receive_email_notifications: true,
     receive_sms_notifications: true,
     receive_push_notifications: false,
+    // NEW: We assume the backend returns is_phone_verified for phone verification status
+    is_phone_verified: false,
   };
 
   countries: any[] = [];
@@ -26,12 +28,18 @@ export class AccountPage implements OnInit {
   notificationMessage: string = '';
   userHasDeviceToken = false; // To track if user already has a device token
 
+  editMode = false; // from your previous addition
+
   constructor(private apiService: ApiService, private alertController: AlertController) {}
 
   ngOnInit() {
     this.loadUserProfile();
     this.loadCountries();
     this.checkNotificationSupport();
+  }
+
+  toggleEditMode() {
+    this.editMode = !this.editMode;
   }
 
   checkNotificationSupport() {
@@ -45,7 +53,6 @@ export class AccountPage implements OnInit {
         if (permission === 'granted') {
           this.showPushToggle = true;
         } else if (permission === 'default') {
-          // User never granted/denied explicitly, we can show toggle but actual enabling depends on token
           this.showPushToggle = true;
         } else if (permission === 'denied') {
           this.showPushToggle = false;
@@ -54,7 +61,6 @@ export class AccountPage implements OnInit {
       }
     } else if (this.isMobileAppPlatform()) {
       console.log("[DEBUG] Mobile platform, enabling push toggle by default.");
-      // On a mobile app platform, assume we can show push toggle and native code will handle permissions
       this.showPushToggle = true;
     } else {
       console.log("[DEBUG] Not browser or mobile platform, disabling push toggle.");
@@ -68,7 +74,6 @@ export class AccountPage implements OnInit {
   }
 
   isMobileAppPlatform(): boolean {
-    // Adjust if needed for a mobile native setup
     return false;
   }
 
@@ -109,18 +114,17 @@ export class AccountPage implements OnInit {
 
   async updateUserProfile() {
     this.checkNotificationSupport();
-
     console.log("[DEBUG] Before saving profile. showPushToggle:", this.showPushToggle, "User wants push?", this.user.receive_push_notifications);
 
-    // If user wants push but no toggle visible or no token, cannot enable push
     if (this.user.receive_push_notifications && (!this.showPushToggle || !this.userHasDeviceToken)) {
       console.log("[DEBUG] User wants push but cannot enable (no toggle or no token). Disabling push.");
       await this.showAlert("Push notifications are currently not available. Please ensure notifications are enabled at app startup.");
       this.user.receive_push_notifications = false;
     }
 
-    // Directly save the profile now
+    // Actually save
     this.saveUserProfile();
+    this.editMode = false;
   }
 
   saveUserProfile() {
@@ -142,11 +146,7 @@ export class AccountPage implements OnInit {
     }
 
     const prefixDigits = selectedCountry.phone_prefix.replace(/\D/g, '');
-    // If user already included prefix
-    if (phoneNumberDigits.startsWith(prefixDigits)) {
-      console.log("[DEBUG] User included prefix already, not adding again.");
-      // do nothing extra
-    } else {
+    if (!phoneNumberDigits.startsWith(prefixDigits)) {
       phoneNumberDigits = prefixDigits + phoneNumberDigits;
     }
 
@@ -185,6 +185,9 @@ export class AccountPage implements OnInit {
   loadUserProfile() {
     this.apiService.getUserProfile().subscribe((data) => {
       this.user = data;
+      // e.g. data might contain is_phone_verified
+      // this.user.is_phone_verified = data.is_phone_verified || false;
+
       this.checkNotificationSupport();
       this.loadUserDevices(); // Load devices after loading profile
     });
@@ -206,35 +209,137 @@ export class AccountPage implements OnInit {
   }
 
   loadUserDevices() {
-    // This method must be implemented in your ApiService
-    // It should return the list of user devices (with tokens).
-    this.apiService.getUserDevices().subscribe((devices: any[]) => {
-      if (devices && devices.length > 0) {
-        console.log("[DEBUG] User has devices:", devices);
-        this.userHasDeviceToken = true;
-      } else {
-        console.log("[DEBUG] User has no device token registered.");
+    this.apiService.getUserDevices().subscribe(
+      (devices: any[]) => {
+        if (devices && devices.length > 0) {
+          console.log("[DEBUG] User has devices:", devices);
+          this.userHasDeviceToken = true;
+        } else {
+          console.log("[DEBUG] User has no device token registered.");
+          this.userHasDeviceToken = false;
+          if (this.user.receive_push_notifications) {
+            this.user.receive_push_notifications = false;
+            this.showAlert("No device token found. Push notifications require enabling notifications at app startup.");
+          }
+        }
+      },
+      (error) => {
+        console.error("[DEBUG] Failed to load user devices", error);
         this.userHasDeviceToken = false;
-        // If user tries to enable push while no token is present, we show a message in updateUserProfile()
-      }
-
-      // If userHasDeviceToken is false and user wants push, we handle that in updateUserProfile()
-      // If userHasDeviceToken is true and showPushToggle is true, user can set push on
-      if (!this.userHasDeviceToken) {
-        // Maybe show a placeholder message if user tries to enable push
         if (this.user.receive_push_notifications) {
           this.user.receive_push_notifications = false;
-          this.showAlert("No device token found. Push notifications require enabling notifications at app startup.");
+          this.showAlert("Could not verify device token. Push notifications disabled.");
         }
       }
-    }, (error) => {
-      console.error("[DEBUG] Failed to load user devices", error);
-      // If we can't load devices, assume none
-      this.userHasDeviceToken = false;
-      if (this.user.receive_push_notifications) {
-        this.user.receive_push_notifications = false;
-        this.showAlert("Could not verify device token. Push notifications disabled.");
+    );
+  }
+
+  // NEW/UPDATED: Called whenever user toggles SMS on/off
+  async onToggleSMSNotifications(event: any) {
+    // user.receive_sms_notifications is already changed at this point
+    const turnedOn = this.user.receive_sms_notifications;
+
+    // 1. If toggling ON, ensure a phone number is present
+    if (turnedOn) {
+      // If no phone number, disallow
+      if (!this.user.phone_number) {
+        await this.showErrorAlert("Please enter a phone number before enabling SMS notifications.");
+        // revert
+        this.user.receive_sms_notifications = false;
+        return;
       }
+      // If phone is not verified, send code automatically & prompt user
+      if (!this.user.is_phone_verified) {
+        // Call an API to send the code or rely on server logic
+        // For minimal approach, assume your server does it if you do `updateUserProfile()`
+        // or you have an endpoint like "resendPhoneVerification()"
+        this.sendVerificationCode();
+      }
+      // If phone is already verified, do nothing special
+    } else {
+      // Toggling off -> we do nothing special
+      console.log("[DEBUG] SMS notifications turned OFF.");
+    }
+  }
+
+  // NEW: Send code if user toggles SMS on but phone is not verified
+  async sendVerificationCode() {
+    try {
+      // Suppose you have an endpoint like 'resendPhoneVerification' or 'sendPhoneVerification'
+      // Or you can simply call updateUserProfile, but that might alter other fields
+      // We'll assume you have something like:
+      await this.apiService.resendPhoneVerification().toPromise();
+      // Then prompt user for code
+      this.promptForVerificationCode();
+    } catch (err) {
+      console.error("[DEBUG] Failed to send verification code automatically", err);
+      this.user.receive_sms_notifications = false;
+      this.showErrorAlert("Failed to send verification code. Please try again.");
+    }
+  }
+
+  // NEW: Prompt user to enter code
+  async promptForVerificationCode() {
+    const alert = await this.alertController.create({
+      header: 'Enter Verification Code',
+      inputs: [
+        {
+          name: 'code',
+          type: 'text',
+          placeholder: '6-digit code'
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          handler: () => {
+            // user canceled verifying, let's revert the toggle
+            this.user.receive_sms_notifications = false;
+          }
+        },
+        {
+          text: 'Verify',
+          handler: (data) => {
+            if (!data.code || data.code.length !== 6) {
+              this.showErrorAlert("Invalid verification code format.");
+              // keep toggled on for the moment or revert it?
+              // We can choose to revert:
+              this.user.receive_sms_notifications = false;
+              return;
+            }
+            this.verifyPhone(data.code);
+          }
+        }
+      ]
     });
+    await alert.present();
+  }
+
+  // NEW: Verify code with your phone verification endpoint
+  async verifyPhone(code: string) {
+    this.apiService.verifyPhone(code).subscribe(
+      async (res: any) => {
+        // success
+        this.user.is_phone_verified = true;
+        // phone is verified, user can keep SMS on
+        const alert = await this.alertController.create({
+          header: 'Success',
+          message: 'Phone number verified successfully.',
+          buttons: ['OK']
+        });
+        await alert.present();
+      },
+      async (err) => {
+        // fail
+        this.user.receive_sms_notifications = false;
+        const alert = await this.alertController.create({
+          header: 'Verification Failed',
+          message: 'Invalid or expired verification code. SMS notifications turned off.',
+          buttons: ['OK']
+        });
+        await alert.present();
+      }
+    );
   }
 }

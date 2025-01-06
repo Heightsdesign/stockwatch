@@ -117,12 +117,17 @@ export class ApiService {
 
    // Verify email using UID and token
   verifyEmail(uid: string, token: string): Observable<any> {
-    return this.http.get(`${this.credsUrl}verify-email/${uid}/${token}/`);
+    return this.http.get(`${this.credsUrl}/verify-email/${uid}/${token}/`);
   }
 
   // Verify phone number using a verification code
   verifyPhone(code: string): Observable<any> {
-    return this.http.post(`${this.credsUrl}verify-phone/`, { code });
+    return this.http.post(`${this.credsUrl}/verify-phone/`, { code });
+  }
+
+  resendPhoneVerification(): Observable<any> {
+    // Adjust endpoint and logic if needed
+    return this.http.post(`${this.credsUrl}/resend-phone-verification/`, {});
   }
 
 }
