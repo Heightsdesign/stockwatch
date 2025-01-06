@@ -57,19 +57,25 @@ class PriceTargetAlert(models.Model):
 
 class PercentageChangeAlert(models.Model):
     TIMEFRAME_CHOICES = [
-        ('1D', '1 Day'),
-        ('1W', '1 Week'),
-        ('1M', '1 Month'),
-        ('1Y', '1 Year'),
-        ('CUSTOM', 'Custom'),
+        ('5min', '5 Minutes'),
+        ('15min', '15 Minutes'),
+        ('30min', '30 Minutes'),
+        ('1h', '1 Hour'),
+        ('4h', '4 Hours'),
+        ('1d', '1 Day'),
+        ('1w', '1 Week'),
+        ('2w', '2 Weeks'),
+        ('1mo', '1 Month'),
+        ('3mo', '3 Months'),
     ]
 
     alert = models.OneToOneField(Alert, on_delete=models.CASCADE, related_name='percentage_change')
     lookback_period = models.CharField(max_length=10, choices=TIMEFRAME_CHOICES, null=True, blank=True)
-    custom_lookback_days = models.PositiveIntegerField(null=True, blank=True)
     direction = models.CharField(max_length=4, choices=[('UP', 'Up'), ('DOWN', 'Down')])
     percentage_change = models.DecimalField(max_digits=5, decimal_places=2)
     check_interval = models.IntegerField(default=60)
+
+    # custom_lookback_days = models.PositiveIntegerField(null=True, blank=True)
 
     def __str__(self):
         return f"Percentage Change Alert for {self.alert.stock.name} ({self.direction} {self.percentage_change}%)"

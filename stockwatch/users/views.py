@@ -4,19 +4,15 @@ from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import generics, status
 from rest_framework.views import APIView
-from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils.encoding import force_bytes
-from django.utils.decorators import method_decorator
 from django.contrib.auth.tokens import default_token_generator
-
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from dj_rest_auth.registration.views import RegisterView
-from alerts.notifications import send_email_notification, send_sms_notification
 
-import random
+
 import logging
 
 from .models import CustomUser, Country, UserDevice
@@ -26,12 +22,14 @@ from .serializers import (
     UserDeviceSerializer,
     CustomRegisterSerializer,
     VerifyPhoneSerializer,
-    SendPhoneVerificationSerializer
 )
+from .throttles import VerificationThrottle
+from alerts.notifications import send_email_notification, send_sms_notification
 
 logger = logging.getLogger(__name__)
 
 import random  # Ensure this import exists at the top
+
 
 class CustomRegisterView(RegisterView):
     """
@@ -153,7 +151,7 @@ class UserDeviceListView(APIView):
 
 class VerifyEmailView(APIView):
 
-    throttle_classes = [UserRateThrottle, AnonRateThrottle]
+    throttle_classes = [VerificationThrottle]
     def get(self, request, uidb64, token):
         try:
             uid = urlsafe_base64_decode(uidb64).decode()
@@ -173,7 +171,7 @@ class VerifyPhoneView(APIView):
     Verifies the user's phone number using the code sent via SMS.
     """
     permission_classes = [IsAuthenticated]
-    throttle_classes = [UserRateThrottle, AnonRateThrottle]
+    throttle_classes = [VerificationThrottle]
 
     def post(self, request):
         serializer = VerifyPhoneSerializer(data=request.data)
@@ -203,7 +201,7 @@ class ResendEmailVerificationView(APIView):
     Resends the email verification link to the user.
     """
     permission_classes = [IsAuthenticated]
-    throttle_classes = [UserRateThrottle, AnonRateThrottle]
+    throttle_classes = [VerificationThrottle]
 
     def post(self, request):
         user = request.user
@@ -235,7 +233,7 @@ class ResendPhoneVerificationView(APIView):
     Resends the phone verification code via SMS.
     """
     permission_classes = [IsAuthenticated]
-    throttle_classes = [UserRateThrottle, AnonRateThrottle]
+    throttle_classes = [VerificationThrottle]
 
     def post(self, request):
         user = request.user

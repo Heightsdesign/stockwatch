@@ -56,24 +56,24 @@
       <ion-item>
         <ion-label>Lookback Period</ion-label>
         <ion-select formControlName="lookback_period">
-          <ion-select-option value="5Min">Every 5 Minutes</ion-select-option>
-          <ion-select-option value="15Min">Every 15 Minutes</ion-select-option>
-          <ion-select-option value="30Min">Every 30 Minutes</ion-select-option>
-          <ion-select-option value="60Min">Every Hour</ion-select-option>
-          <ion-select-option value="1D">Once a Day</ion-select-option>
-          <ion-select-option value="1W">1 Week</ion-select-option>
-          <ion-select-option value="1M">1 Month</ion-select-option>
-          <ion-select-option value="3M">3 Months</ion-select-option>
-          <ion-select-option value="CUSTOM">Custom</ion-select-option>
+          <ion-select-option value="5Min">5 Min</ion-select-option>
+          <ion-select-option value="15Min">15 Min</ion-select-option>
+          <ion-select-option value="30Min">30 Min</ion-select-option>
+          <ion-select-option value="60Min">1H</ion-select-option>
+          <ion-select-option value="1D">1D</ion-select-option>
+          <ion-select-option value="1W">1W</ion-select-option>
+          <ion-select-option value="1M">1Mo</ion-select-option>
+          <ion-select-option value="3M">3Mo</ion-select-option>
+          <!-- <ion-select-option value="CUSTOM">Custom</ion-select-option> -->
         </ion-select>
       </ion-item>
-      <!-- Custom Lookback Days (Visible only if lookback_period is 'CUSTOM') -->
+      <!-- Custom Lookback Days (Visible only if lookback_period is 'CUSTOM')
       <ng-container *ngIf="alertForm.get('lookback_period')?.value === 'CUSTOM'">
         <ion-item>
           <ion-label position="floating">Custom Lookback Days</ion-label>
           <ion-input formControlName="custom_lookback_days" type="number"></ion-input>
         </ion-item>
-      </ng-container>
+      </ng-container> -->
       <!-- Direction -->
       <ion-item>
         <ion-label>Direction</ion-label>
@@ -171,8 +171,6 @@
             <ion-item>
               <ion-label>Operator</ion-label>
               <ion-select formControlName="condition_operator">
-                <ion-select-option value="CROSS_ABOVE">Crosses Above</ion-select-option>
-                <ion-select-option value="CROSS_BELOW">Crosses Below</ion-select-option>
                 <ion-select-option value="GT">></ion-select-option>
                 <ion-select-option value="LT"><</ion-select-option>
                 <ion-select-option value="EQ">=</ion-select-option>

@@ -181,6 +181,7 @@ class PriceTargetAlertSerializer(serializers.ModelSerializer):
 
         return instance
 
+
 class PercentageChangeAlertSerializer(serializers.ModelSerializer):
     stock = serializers.SlugRelatedField(
         slug_field='symbol',
@@ -344,6 +345,13 @@ class IndicatorConditionSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError({param_name: "Must be a string."})
                 if param_type == 'choice' and value not in param_def.choices:
                     raise serializers.ValidationError({param_name: f"Invalid choice. Available choices are: {param_def.choices}"})
+
+                if param_name in ['length', 'lookback']:  # or any param name you want to constrain
+                    if float(value) > 400:  # or int(value) > 400, depending on param_type
+                        raise serializers.ValidationError(
+                            {param_name: "Maximum allowed length is 400."}
+                        )
+
                 validated_parameters[param_name] = value
             else:
                 if required:

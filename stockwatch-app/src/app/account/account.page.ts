@@ -271,10 +271,13 @@ export class AccountPage implements OnInit {
       await this.apiService.resendPhoneVerification().toPromise();
       // Then prompt user for code
       this.promptForVerificationCode();
-    } catch (err) {
-      console.error("[DEBUG] Failed to send verification code automatically", err);
+    } catch (err: any) {
+      if (err.status === 429) {
+        this.showErrorAlert(err.error.error || "Please wait before requesting another code.");
+      } else {
+        this.showErrorAlert("Failed to send verification code. Please try again.");
+      }
       this.user.receive_sms_notifications = false;
-      this.showErrorAlert("Failed to send verification code. Please try again.");
     }
   }
 

@@ -123,7 +123,7 @@ def process_percentage_change_alert(alert, data):
     # Determine the lookback period in days
     period_map = {
         '5Min': '5m', '15Min': '15m', '30Min': '30m', '60Min': '60m',
-        '1D': '1d', '1W': '1wk', '1M': '1mo', '3M': '3mo', 'CUSTOM': f'{custom_days}d'
+        '1D': '1d', '1W': '1wk', '1M': '1mo', '3M': '3mo'
     }
     period = period_map.get(lookback_period, '1d')
 

@@ -17,10 +17,6 @@ def get_stock_data(symbol, period='1mo', interval='1d'):
         return pd.DataFrame()
 
 
-import pandas as pd
-import pandas_ta as ta
-
-
 def calculate_indicator(indicator_name: str, df: pd.DataFrame, line: str = None, parameters: dict = None):
     """
     Calculate the specified indicator using pandas_ta.

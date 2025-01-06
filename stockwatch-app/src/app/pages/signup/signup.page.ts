@@ -151,6 +151,19 @@ export class SignupPage implements OnInit {
       async (err) => {
         await loading.dismiss();
 
+        if (err.status === 429) {
+
+          const alert = await this.alertController.create({
+            header: 'Too Many Attempts',
+            message:
+              err.error.error ||
+              'You have made too many verification attempts. Please wait 2 minutes before trying again.',
+            buttons: ['OK'],
+          });
+          await alert.present();
+          return;
+        }
+
         // Handle error response
         let errorMessage = 'An error occurred. Please try again later.';
         if (err.error) {

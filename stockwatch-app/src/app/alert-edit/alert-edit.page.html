@@ -61,17 +61,22 @@
         <ion-item>
           <ion-label>Lookback Period</ion-label>
           <ion-select formControlName="lookback_period">
-            <ion-select-option value="1D">1 Day</ion-select-option>
-            <ion-select-option value="1W">1 Week</ion-select-option>
-            <ion-select-option value="1M">1 Month</ion-select-option>
-            <ion-select-option value="CUSTOM">Custom</ion-select-option>
+            <ion-select-option value="5Min">5 Min</ion-select-option>
+            <ion-select-option value="15Min">15 Min</ion-select-option>
+            <ion-select-option value="30Min">30 Min</ion-select-option>
+            <ion-select-option value="60Min">1H</ion-select-option>
+            <ion-select-option value="1D">1D</ion-select-option>
+            <ion-select-option value="1W">1W</ion-select-option>
+            <ion-select-option value="1M">1Mo</ion-select-option>
+            <ion-select-option value="3M">3Mo</ion-select-option>
+            <!-- <ion-select-option value="CUSTOM">Custom</ion-select-option> -->
           </ion-select>
         </ion-item>
-        <!-- Custom Lookback Days Field -->
+        <!--  Custom Lookback Days Field
         <ion-item *ngIf="editAlertForm.get('lookback_period')?.value === 'CUSTOM'">
           <ion-label position="stacked">Custom Lookback Days</ion-label>
           <ion-input formControlName="custom_lookback_days" type="number" min="1"></ion-input>
-        </ion-item>
+        </ion-item> -->
       </ion-list>
     </ng-container>
 
@@ -166,8 +171,6 @@
                 <ion-item>
                   <ion-label>Operator</ion-label>
                   <ion-select formControlName="condition_operator">
-                    <ion-select-option value="CROSS_ABOVE">Crosses Above</ion-select-option>
-                    <ion-select-option value="CROSS_BELOW">Crosses Below</ion-select-option>
                     <ion-select-option value="GT">Greater Than</ion-select-option>
                     <ion-select-option value="LT">Less Than</ion-select-option>
                     <ion-select-option value="EQ">Equal To</ion-select-option>
