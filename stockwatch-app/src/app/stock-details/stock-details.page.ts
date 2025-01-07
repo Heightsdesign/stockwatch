@@ -345,11 +345,7 @@ onValueIndicatorChange(event: any, conditionIndex: number) {
     const alertType = this.alertForm.get('alert_type')?.value;
     const alertData = this.prepareAlertData();
 
-    // Add the debug log here:
-    console.log("[DEBUG] Alert Data before sending:", alertData);
-
     let createAlertObservable: Observable<any>;
-
     switch (alertType) {
       case 'PRICE':
         createAlertObservable = this.apiService.createPriceTargetAlert(alertData);
@@ -368,24 +364,57 @@ onValueIndicatorChange(event: any, conditionIndex: number) {
 
     createAlertObservable.subscribe(
       async () => {
+        // success handling
         await loading.dismiss();
-        const alert = await this.alertController.create({
-          header: 'Success',
-          message: 'Alert created successfully.',
-          buttons: ['OK'],
-        });
-        await alert.present();
-        // Optionally, navigate to another page or reset the form
       },
+
       async (error) => {
-        await loading.dismiss();
         console.error('Error creating alert:', error);
-        const alert = await this.alertController.create({
-          header: 'Error',
-          message: 'Failed to create alert.',
-          buttons: ['OK'],
-        });
-        await alert.present();
+
+        if (error.status === 400 && error.error) {
+          // 1) Possibly handle top-level fields if you have them
+          if (error.error.check_interval) {
+            this.alertForm.get('check_interval')?.setErrors({
+              customError: error.error.check_interval.join(' '),
+            });
+          }
+
+          // 2) Now handle conditions array
+          if (Array.isArray(error.error.conditions)) {
+            error.error.conditions.forEach((condErr: any, idx: number) => {
+              // condErr might be { "length": ["Maximum allowed length is 400."] }
+              const conditionGroup = this.conditions.at(idx) as FormGroup;
+
+              // If 'length' key is present
+              if (condErr.length) {
+                const lengthCtrl = conditionGroup.get('parameters')?.get('length');
+                if (lengthCtrl) {
+                  lengthCtrl.setErrors({ customError: condErr.length.join(' ') });
+                }
+              }
+
+              // If there are other keys, handle them similarly...
+            });
+          }
+
+          // Show a top-level alert if you like
+          const alertPopup = await this.alertController.create({
+            header: 'Validation Error',
+            message: 'Please correct the highlighted fields.',
+            buttons: ['OK'],
+          });
+          await alertPopup.present();
+          await loading.dismiss();
+
+        } else {
+          // Non-400 error
+          const errorAlert = await this.alertController.create({
+            header: 'Error',
+            message: 'Failed to create alert.',
+            buttons: ['OK'],
+          });
+          await errorAlert.present();
+        }
       }
     );
   }
@@ -494,6 +523,84 @@ onValueIndicatorChange(event: any, conditionIndex: number) {
       default:
         throw new Error(`Unknown alert type: ${formValues.alert_type}`);
     }
+  }
+  private applyInlineErrors(errorObj: any) {
+    // Suppose the DRF error might look like:
+    // {
+    //   "conditions": {
+    //     "0": {
+    //       "indicator_parameters": {
+    //         "length": ["Max is 400"]
+    //       }
+    //     }
+    //   }
+    //   "check_interval": ["Must be >= 1"]
+    //   ...
+    // }
+
+    // 1) Top-level fields
+    if (errorObj.check_interval && Array.isArray(errorObj.check_interval)) {
+      const ctrl = this.alertForm.get('check_interval');
+      if (ctrl) {
+        ctrl.setErrors({ customError: errorObj.check_interval.join(' ') });
+      }
+    }
+    if (errorObj.target_price && Array.isArray(errorObj.target_price)) {
+      const ctrl = this.alertForm.get('target_price');
+      if (ctrl) {
+        ctrl.setErrors({ customError: errorObj.target_price.join(' ') });
+      }
+    }
+    // etc. for other top-level fields like 'condition', 'lookback_period' ...
+
+    // 2) If "conditions" is in error object
+    if (errorObj.conditions && typeof errorObj.conditions === 'object') {
+      const conditionsErrors = errorObj.conditions;
+      // Each key is like "0", "1", ...
+      Object.keys(conditionsErrors).forEach((idxStr) => {
+        const idx = parseInt(idxStr, 10);
+        const conditionErrorObj = conditionsErrors[idxStr];
+
+        // Our form array
+        const conditionGroup = this.conditions.at(idx) as FormGroup;
+
+        // Possibly the entire condition has errors:
+        if (Array.isArray(conditionErrorObj)) {
+          // e.g. "conditions.0": ["some error..."]
+          conditionGroup.setErrors({ customError: conditionErrorObj.join(' ') });
+        }
+        else if (typeof conditionErrorObj === 'object') {
+          // We might see "indicator": ["can't be blank"] or "indicator_parameters": {...}
+
+          // If "indicator" key is present
+          if (conditionErrorObj.indicator && Array.isArray(conditionErrorObj.indicator)) {
+            const c = conditionGroup.get('indicator');
+            c?.setErrors({ customError: conditionErrorObj.indicator.join(' ') });
+          }
+          // If "indicator_parameters" has an object like { "length": ["Max 400"] }
+          if (conditionErrorObj.indicator_parameters) {
+            this.applyIndicatorParametersErrors(conditionGroup, conditionErrorObj.indicator_parameters);
+          }
+          // Similarly check "value_indicator_parameters" if that’s how DRF returns it
+        }
+      });
+    }
+  }
+
+  private applyIndicatorParametersErrors(conditionGroup: FormGroup, paramErrors: any) {
+    // paramErrors might look like { "length": ["Maximum allowed length is 400."] }
+    const parametersGroup = conditionGroup.get('parameters') as FormGroup;
+    if (!parametersGroup) return;
+
+    Object.keys(paramErrors).forEach((paramName) => {
+      const messages = paramErrors[paramName];
+      if (Array.isArray(messages)) {
+        const paramCtrl = parametersGroup.get(paramName);
+        if (paramCtrl) {
+          paramCtrl.setErrors({ customError: messages.join(' ') });
+        }
+      }
+    });
   }
 }
 

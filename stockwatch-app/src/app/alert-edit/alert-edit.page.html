@@ -8,11 +8,16 @@
 
 <ion-content *ngIf="alert && editAlertForm">
   <form [formGroup]="editAlertForm" (ngSubmit)="submitForm()">
+
     <!-- Active Toggle -->
     <ion-item>
       <ion-label>Active</ion-label>
       <ion-toggle formControlName="is_active"></ion-toggle>
     </ion-item>
+    <!-- NEW: Show inline error if "is_active" has a customError -->
+    <ion-note color="danger" *ngIf="editAlertForm.get('is_active')?.errors?.['customError']">
+      {{ editAlertForm.get('is_active')?.errors?.['customError'] }}
+    </ion-note>
 
     <!-- Check Interval Field -->
     <ion-item>
@@ -23,6 +28,10 @@
         </ion-select-option>
       </ion-select>
     </ion-item>
+    <!-- NEW: Show inline error if "check_interval" has a customError -->
+    <ion-note color="danger" *ngIf="editAlertForm.get('check_interval')?.errors?.['customError']">
+      {{ editAlertForm.get('check_interval')?.errors?.['customError'] }}
+    </ion-note>
 
     <!-- Price Alert Form -->
     <ng-container *ngIf="alert.alert_type === 'PRICE'">
@@ -32,6 +41,10 @@
           <ion-label position="stacked">Target Price</ion-label>
           <ion-input formControlName="target_price" type="number" required></ion-input>
         </ion-item>
+        <!-- NEW: Inline error for target_price -->
+        <ion-note color="danger" *ngIf="editAlertForm.get('target_price')?.errors?.['customError']">
+          {{ editAlertForm.get('target_price')?.errors?.['customError'] }}
+        </ion-note>
 
         <!-- Condition Field -->
         <ion-item>
@@ -41,6 +54,10 @@
             <ion-select-option value="LT">Less Than</ion-select-option>
           </ion-select>
         </ion-item>
+        <!-- NEW: Inline error for condition -->
+        <ion-note color="danger" *ngIf="editAlertForm.get('condition')?.errors?.['customError']">
+          {{ editAlertForm.get('condition')?.errors?.['customError'] }}
+        </ion-note>
       </ion-list>
     </ng-container>
 
@@ -51,6 +68,11 @@
           <ion-label position="stacked">Percentage Change (%)</ion-label>
           <ion-input formControlName="percentage_change" type="number" min="0" step="0.01"></ion-input>
         </ion-item>
+        <!-- NEW: Inline error for percentage_change -->
+        <ion-note color="danger" *ngIf="editAlertForm.get('percentage_change')?.errors?.['customError']">
+          {{ editAlertForm.get('percentage_change')?.errors?.['customError'] }}
+        </ion-note>
+
         <ion-item>
           <ion-label>Direction</ion-label>
           <ion-select formControlName="direction">
@@ -58,6 +80,11 @@
             <ion-select-option value="DOWN">Down</ion-select-option>
           </ion-select>
         </ion-item>
+        <!-- NEW: Inline error for direction -->
+        <ion-note color="danger" *ngIf="editAlertForm.get('direction')?.errors?.['customError']">
+          {{ editAlertForm.get('direction')?.errors?.['customError'] }}
+        </ion-note>
+
         <ion-item>
           <ion-label>Lookback Period</ion-label>
           <ion-select formControlName="lookback_period">
@@ -72,11 +99,20 @@
             <!-- <ion-select-option value="CUSTOM">Custom</ion-select-option> -->
           </ion-select>
         </ion-item>
+        <!-- NEW: Inline error for lookback_period -->
+        <ion-note color="danger" *ngIf="editAlertForm.get('lookback_period')?.errors?.['customError']">
+          {{ editAlertForm.get('lookback_period')?.errors?.['customError'] }}
+        </ion-note>
+
         <!--  Custom Lookback Days Field
         <ion-item *ngIf="editAlertForm.get('lookback_period')?.value === 'CUSTOM'">
           <ion-label position="stacked">Custom Lookback Days</ion-label>
           <ion-input formControlName="custom_lookback_days" type="number" min="1"></ion-input>
-        </ion-item> -->
+        </ion-item>
+        <ion-note color="danger" *ngIf="editAlertForm.get('custom_lookback_days')?.errors?.['customError']">
+          {{ editAlertForm.get('custom_lookback_days')?.errors?.['customError'] }}
+        </ion-note>
+        -->
       </ion-list>
     </ng-container>
 
@@ -91,6 +127,7 @@
                 <ion-card-title>Condition {{ i + 1 }}</ion-card-title>
               </ion-card-header>
               <ion-card-content>
+
                 <!-- Indicator Selection -->
                 <ion-item>
                   <ion-label>Indicator</ion-label>
@@ -100,6 +137,10 @@
                     </ion-select-option>
                   </ion-select>
                 </ion-item>
+                <!-- NEW: Inline error for condition[i].indicator -->
+                <ion-note color="danger" *ngIf="condition.get('indicator')?.errors?.['customError']">
+                  {{ condition.get('indicator')?.errors?.['customError'] }}
+                </ion-note>
 
                 <!-- Indicator Line Selection -->
                 <ion-item *ngIf="indicatorLines[i] && indicatorLines[i].length > 0">
@@ -110,6 +151,10 @@
                     </ion-select-option>
                   </ion-select>
                 </ion-item>
+                <!-- NEW: Inline error for condition[i].indicator_line -->
+                <ion-note color="danger" *ngIf="condition.get('indicator_line')?.errors?.['customError']">
+                  {{ condition.get('indicator_line')?.errors?.['customError'] }}
+                </ion-note>
 
                 <!-- Indicator Timeframe -->
                 <ion-item>
@@ -122,6 +167,10 @@
                     <ion-select-option value="1D">1 Day</ion-select-option>
                   </ion-select>
                 </ion-item>
+                <!-- NEW: Inline error for condition[i].indicator_timeframe -->
+                <ion-note color="danger" *ngIf="condition.get('indicator_timeframe')?.errors?.['customError']">
+                  {{ condition.get('indicator_timeframe')?.errors?.['customError'] }}
+                </ion-note>
 
                 <!-- Parameters Section -->
                 <div formGroupName="parameters" *ngIf="indicatorParameters[i] && indicatorParameters[i].length > 0">
@@ -129,6 +178,7 @@
                     <ion-item>
                       <ion-label position="stacked">{{ param.display_name }}</ion-label>
                       <ng-container [ngSwitch]="param.param_type">
+
                         <!-- Integer Parameter -->
                         <ion-input
                           *ngSwitchCase="'int'"
@@ -137,6 +187,7 @@
                           [formControlName]="param.name"
                           [required]="param.required">
                         </ion-input>
+
                         <!-- Float Parameter -->
                         <ion-input
                           *ngSwitchCase="'float'"
@@ -146,6 +197,7 @@
                           [formControlName]="param.name"
                           [required]="param.required">
                         </ion-input>
+
                         <!-- String Parameter -->
                         <ion-input
                           *ngSwitchCase="'string'"
@@ -153,6 +205,7 @@
                           [formControlName]="param.name"
                           [required]="param.required">
                         </ion-input>
+
                         <!-- Choice Parameter -->
                         <ion-select
                           *ngSwitchCase="'choice'"
@@ -164,6 +217,11 @@
                         </ion-select>
                       </ng-container>
                     </ion-item>
+                    <!-- NEW: Inline error for each param -->
+                    <ion-note color="danger"
+                      *ngIf="condition.get('parameters')?.get(param.name)?.errors?.['customError']">
+                      {{ condition.get('parameters')?.get(param.name)?.errors?.['customError'] }}
+                    </ion-note>
                   </div>
                 </div>
 
@@ -176,6 +234,10 @@
                     <ion-select-option value="EQ">Equal To</ion-select-option>
                   </ion-select>
                 </ion-item>
+                <!-- NEW: Inline error for condition[i].condition_operator -->
+                <ion-note color="danger" *ngIf="condition.get('condition_operator')?.errors?.['customError']">
+                  {{ condition.get('condition_operator')?.errors?.['customError'] }}
+                </ion-note>
 
                 <!-- Value Type -->
                 <ion-item>
@@ -186,15 +248,21 @@
                     <ion-select-option value="INDICATOR_LINE">Indicator Line</ion-select-option>
                   </ion-select>
                 </ion-item>
+                <!-- NEW: Inline error for condition[i].value_type -->
+                <ion-note color="danger" *ngIf="condition.get('value_type')?.errors?.['customError']">
+                  {{ condition.get('value_type')?.errors?.['customError'] }}
+                </ion-note>
 
-
-                <!-- Value Fields Based on Value Type -->
                 <!-- For NUMBER -->
                 <div *ngIf="condition.get('value_type')?.value === 'NUMBER'">
                   <ion-item>
                     <ion-label position="stacked">Value Number</ion-label>
                     <ion-input formControlName="value_number" type="number" required></ion-input>
                   </ion-item>
+                  <!-- NEW: Inline error for value_number -->
+                  <ion-note color="danger" *ngIf="condition.get('value_number')?.errors?.['customError']">
+                    {{ condition.get('value_number')?.errors?.['customError'] }}
+                  </ion-note>
                 </div>
 
                 <!-- For INDICATOR_LINE -->
@@ -208,6 +276,10 @@
                       </ion-select-option>
                     </ion-select>
                   </ion-item>
+                  <!-- NEW: Inline error for value_indicator -->
+                  <ion-note color="danger" *ngIf="condition.get('value_indicator')?.errors?.['customError']">
+                    {{ condition.get('value_indicator')?.errors?.['customError'] }}
+                  </ion-note>
 
                   <!-- Value Indicator Line Selection -->
                   <ion-item *ngIf="valueIndicatorLines[i] && valueIndicatorLines[i].length > 0">
@@ -218,12 +290,15 @@
                       </ion-select-option>
                     </ion-select>
                   </ion-item>
+                  <!-- NEW: Inline error for value_indicator_line -->
+                  <ion-note color="danger" *ngIf="condition.get('value_indicator_line')?.errors?.['customError']">
+                    {{ condition.get('value_indicator_line')?.errors?.['customError'] }}
+                  </ion-note>
 
                   <!-- Value Timeframe -->
                   <ion-item>
                     <ion-label>Value Timeframe</ion-label>
                     <ion-select formControlName="value_timeframe" required>
-                      <!-- Timeframe options -->
                       <ion-select-option value="1MIN">1 Minute</ion-select-option>
                       <ion-select-option value="5MIN">5 Minutes</ion-select-option>
                       <ion-select-option value="15MIN">15 Minutes</ion-select-option>
@@ -231,6 +306,10 @@
                       <ion-select-option value="1D">1 Day</ion-select-option>
                     </ion-select>
                   </ion-item>
+                  <!-- NEW: Inline error for value_timeframe -->
+                  <ion-note color="danger" *ngIf="condition.get('value_timeframe')?.errors?.['customError']">
+                    {{ condition.get('value_timeframe')?.errors?.['customError'] }}
+                  </ion-note>
 
                   <!-- Value Indicator Parameters -->
                   <div formGroupName="value_parameters" *ngIf="valueIndicatorParameters[i] && valueIndicatorParameters[i].length > 0">
@@ -273,9 +352,15 @@
                           </ion-select>
                         </ng-container>
                       </ion-item>
+                      <!-- NEW: Inline error for each param in value_parameters -->
+                      <ion-note color="danger"
+                        *ngIf="condition.get('value_parameters')?.get(param.name)?.errors?.['customError']">
+                        {{ condition.get('value_parameters')?.get(param.name)?.errors?.['customError'] }}
+                      </ion-note>
                     </div>
                   </div>
                 </div>
+
                 <!-- Remove Condition Button -->
                 <ion-button color="danger" fill="clear" (click)="removeCondition(i)">Remove Condition</ion-button>
               </ion-card-content>
@@ -283,7 +368,9 @@
           </div>
         </div>
         <!-- Add Condition Button -->
-        <ion-button expand="full" (click)="addCondition()" [disabled]="conditions.length >= 5">Add Condition</ion-button>
+        <ion-button expand="full" (click)="addCondition()" [disabled]="conditions.length >= 5">
+          Add Condition
+        </ion-button>
       </ion-list>
     </ng-container>
 

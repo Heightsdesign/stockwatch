@@ -363,7 +363,7 @@ loadIndicatorDataForCondition(index: number, condition: any) {
     this.conditions.removeAt(index);
   }
 
-  submitForm() {
+  async submitForm() {
     if (this.editAlertForm.valid) {
       const formValue = this.editAlertForm.value;
 
@@ -468,35 +468,155 @@ loadIndicatorDataForCondition(index: number, condition: any) {
 
       this.apiService.updateAlert(this.alertId, updatedData).subscribe(
         async () => {
-          console.log('Alert updated successfully:', Response);
-          // **Optional:** Show success message
+          // Success
+          console.log('Alert updated successfully');
           const successAlert = await this.alertController.create({
             header: 'Success',
             message: 'Alert updated successfully.',
             buttons: ['OK'],
           });
           await successAlert.present();
-
           this.router.navigate(['/alert-detail', this.alertId]);
         },
         async (error) => {
           console.error('Error updating alert:', error);
-          // **Optional:** Show error message
-          const errorAlert = await this.alertController.create({
-            header: 'Error',
-            message: 'Failed to update alert.',
-            buttons: ['OK'],
-          });
-          await errorAlert.present();
+
+          // If it's a 400 from DRF, we might have field-level errors
+          if (error.status === 400 && error.error) {
+            // Attempt to apply these errors to our FormControls
+            this.applyInlineErrors(error.error);
+
+            // Handle indicator_parameters.length error if present
+            if (error.error.conditions) {
+              Object.keys(error.error.conditions).forEach((index) => {
+                const conditionErrors = error.error.conditions[index];
+                const conditionGroup = this.conditions.at(Number(index)) as FormGroup;
+
+                if (conditionErrors?.indicator_parameters?.length) {
+                  const msg = conditionErrors.indicator_parameters.length.join(' ');
+                  const lengthCtrl = conditionGroup.get('parameters')?.get('length');
+                  if (lengthCtrl) {
+                    lengthCtrl.setErrors({ customError: msg });
+                  }
+                }
+              });
+            }
+
+            // Optionally show a top-level error
+            const errorAlert = await this.alertController.create({
+              header: 'Validation Error',
+              message: 'Please correct the highlighted fields.',
+              buttons: ['OK'],
+            });
+            await errorAlert.present();
+          } else {
+            // For non-400 errors, do a general message
+            const errorAlert = await this.alertController.create({
+              header: 'Error',
+              message: 'Failed to update alert.',
+              buttons: ['OK'],
+            });
+            await errorAlert.present();
+          }
         }
       );
+
     } else {
-      // **Optional:** Inform the user that the form is invalid
-      this.alertController.create({
+      // Form is invalid at client side
+      const invalidAlert = await this.alertController.create({
         header: 'Invalid Form',
         message: 'Please ensure all required fields are filled correctly.',
         buttons: ['OK'],
-      }).then(alert => alert.present());
+      });
+      await invalidAlert.present();
     }
+  }
+  private applyInlineErrors(errors: any) {
+    /*
+      Example DRF error structure could look like:
+      {
+        "conditions": {
+          "0": {
+            "indicator_parameters": {
+              "length": ["Maximum allowed length is 400."]
+            }
+          },
+          ...
+        },
+        "check_interval": ["Ensure this value is >= 1."]
+      }
+
+      We'll try to match these paths to the form:
+      this.editAlertForm.get('conditions').at(0).get('parameters.length')
+      this.editAlertForm.get('check_interval')
+    */
+
+    // 1) If there's a top-level error on "check_interval" or "is_active", handle that first
+    if (errors.check_interval && Array.isArray(errors.check_interval)) {
+      const ctrl = this.editAlertForm.get('check_interval');
+      if (ctrl) {
+        ctrl.setErrors({ customError: errors.check_interval.join(' ') });
+      }
+    }
+    if (errors.is_active && Array.isArray(errors.is_active)) {
+      const ctrl = this.editAlertForm.get('is_active');
+      if (ctrl) {
+        ctrl.setErrors({ customError: errors.is_active.join(' ') });
+      }
+    }
+
+    // 2) If "conditions" errors exist
+    if (errors.conditions && typeof errors.conditions === 'object') {
+      // "conditions" is an object like { "0": { ... }, "1": { ... } }
+      const conditionsErrors = errors.conditions;
+      Object.keys(conditionsErrors).forEach((indexStr) => {
+        const idx = parseInt(indexStr, 10);
+        const conditionErrors = conditionsErrors[indexStr];
+
+        // Our form array item
+        const conditionGroup = this.conditions.at(idx) as FormGroup;
+
+        // Possibly there's an error directly on conditionGroup
+        if (Array.isArray(conditionErrors)) {
+          // e.g. "conditions.0": ["Some error"]
+          // We'll set a custom error on the group
+          conditionGroup.setErrors({ customError: conditionErrors.join(' ') });
+        } else if (typeof conditionErrors === 'object') {
+          // More specific fields
+          // e.g. "indicator_parameters": { "length": ["Max length is 400"] }
+          if (conditionErrors.indicator_parameters) {
+            this.applyIndicatorParametersErrors(conditionGroup, conditionErrors.indicator_parameters);
+          }
+          // We might also see errors on "indicator_timeframe", "value_type", etc.
+          if (conditionErrors.indicator_timeframe && Array.isArray(conditionErrors.indicator_timeframe)) {
+            const ctrl = conditionGroup.get('indicator_timeframe');
+            ctrl?.setErrors({ customError: conditionErrors.indicator_timeframe.join(' ') });
+          }
+          // ... similarly handle other fields ...
+        }
+      });
+    }
+  }
+
+  /**
+   * Applies inline errors to the "parameters" formGroup inside a condition,
+   * matching keys with the respective parameter controls.
+   */
+  private applyIndicatorParametersErrors(conditionGroup: FormGroup, paramErrors: any) {
+    // paramErrors might look like { "length": ["Max is 400"], "anotherParam": ["invalid"] }
+    const parametersGroup = conditionGroup.get('parameters') as FormGroup;
+    if (!parametersGroup) return;
+
+    // For each param name in paramErrors
+    Object.keys(paramErrors).forEach((paramName) => {
+      const paramMessages = paramErrors[paramName];
+      if (Array.isArray(paramMessages)) {
+        // "length": ["Maximum allowed length is 400."]
+        const paramCtrl = parametersGroup.get(paramName);
+        if (paramCtrl) {
+          paramCtrl.setErrors({ customError: paramMessages.join(' ') });
+        }
+      }
+    });
   }
 }
