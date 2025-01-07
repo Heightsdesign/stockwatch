@@ -365,7 +365,13 @@ onValueIndicatorChange(event: any, conditionIndex: number) {
     createAlertObservable.subscribe(
       async () => {
         // success handling
-        await loading.dismiss();
+        console.log('Alert updated successfully');
+          const successAlert = await this.alertController.create({
+            header: 'Success',
+            message: 'Alert updated successfully.',
+            buttons: ['OK'],
+          });
+          await successAlert.present();
       },
 
       async (error) => {

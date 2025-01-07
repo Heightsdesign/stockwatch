@@ -25,8 +25,53 @@ export class AlertEditPage implements OnInit {
   indicatorParameters: { [key: number]: IndicatorParameter[] } = {};
   valueIndicatorParameters: { [key: number]: IndicatorParameter[] } = {};
 
+  private applyInlineErrors(errors: any) {
+    if (errors.conditions) {
+      Object.keys(errors.conditions).forEach((index) => {
+        const conditionErrors = errors.conditions[index];
+        const conditionGroup = this.conditions.at(Number(index)) as FormGroup;
 
+        // Handle specific errors for parameters like 'length'
+        if (conditionErrors?.indicator_parameters?.length) {
+          const msg = conditionErrors.indicator_parameters.length.join(' ');
+          const lengthCtrl = conditionGroup.get('parameters')?.get('length');
+          if (lengthCtrl) {
+            lengthCtrl.setErrors({ customError: msg });
+          }
+        }
 
+        // Apply other condition-level errors
+        Object.keys(conditionErrors).forEach((fieldKey) => {
+          const control = conditionGroup.get(fieldKey);
+          if (control) {
+            const errorMsgArray = conditionErrors[fieldKey];
+            control.setErrors({ customError: errorMsgArray.join(' ') });
+          }
+        });
+      });
+    }
+  }
+  /**
+   * Applies inline errors to the "parameters" formGroup inside a condition,
+   * matching keys with the respective parameter controls.
+   */
+  private applyIndicatorParametersErrors(conditionGroup: FormGroup, paramErrors: any) {
+    // paramErrors might look like { "length": ["Max is 400"], "anotherParam": ["invalid"] }
+    const parametersGroup = conditionGroup.get('parameters') as FormGroup;
+    if (!parametersGroup) return;
+
+    // For each param name in paramErrors
+    Object.keys(paramErrors).forEach((paramName) => {
+      const paramMessages = paramErrors[paramName];
+      if (Array.isArray(paramMessages)) {
+        // "length": ["Maximum allowed length is 400."]
+        const paramCtrl = parametersGroup.get(paramName);
+        if (paramCtrl) {
+          paramCtrl.setErrors({ customError: paramMessages.join(' ') });
+        }
+      }
+    });
+  }
   loadIndicators() {
     this.apiService.getIndicators().subscribe((indicators) => {
       this.indicators = indicators;
@@ -68,17 +113,17 @@ export class AlertEditPage implements OnInit {
     private loadingController: LoadingController // **Optional:** For loading indicators
   ) { }
 
-ngOnInit() {
-  this.alertId = +this.route.snapshot.paramMap.get('id')!;
-  forkJoin({
-    indicators: this.apiService.getIndicators(),
-    alertDetail: this.apiService.getAlertDetail(this.alertId),
-  }).subscribe(({ indicators, alertDetail }) => {
-    this.indicators = indicators;
-    this.alert = alertDetail;
-    this.initializeForm();
-  });
-}
+  ngOnInit() {
+    this.alertId = +this.route.snapshot.paramMap.get('id')!;
+    forkJoin({
+      indicators: this.apiService.getIndicators(),
+      alertDetail: this.apiService.getAlertDetail(this.alertId),
+    }).subscribe(({ indicators, alertDetail }) => {
+      this.indicators = indicators;
+      this.alert = alertDetail;
+      this.initializeForm();
+    });
+  }
 
   loadAlertDetail() {
     this.apiService.getAlertDetail(this.alertId).subscribe(
@@ -101,100 +146,100 @@ ngOnInit() {
     return this.conditions.controls as FormGroup[];
   }
 
-setConditionalValidators(conditionGroup: FormGroup, valueType: string | null) {
-  // Clear existing validators
-  conditionGroup.get('value_number')?.clearValidators();
-  conditionGroup.get('value_indicator')?.clearValidators();
-  conditionGroup.get('value_indicator_line')?.clearValidators();
-  conditionGroup.get('value_timeframe')?.clearValidators();
+  setConditionalValidators(conditionGroup: FormGroup, valueType: string | null) {
+    // Clear existing validators
+    conditionGroup.get('value_number')?.clearValidators();
+    conditionGroup.get('value_indicator')?.clearValidators();
+    conditionGroup.get('value_indicator_line')?.clearValidators();
+    conditionGroup.get('value_timeframe')?.clearValidators();
 
-  if (valueType === 'NUMBER') {
-    conditionGroup.get('value_number')?.setValidators([Validators.required]);
-  } else if (valueType === 'INDICATOR_LINE') {
-    conditionGroup.get('value_indicator')?.setValidators([Validators.required]);
-    conditionGroup.get('value_indicator_line')?.setValidators([Validators.required]);
-    conditionGroup.get('value_timeframe')?.setValidators([Validators.required]);
-  }
-
-  // Update validity
-  conditionGroup.get('value_number')?.updateValueAndValidity();
-  conditionGroup.get('value_indicator')?.updateValueAndValidity();
-  conditionGroup.get('value_indicator_line')?.updateValueAndValidity();
-  conditionGroup.get('value_timeframe')?.updateValueAndValidity();
-}
-
-onIndicatorChange(event: any, conditionIndex: number) {
-  const indicatorName = event.detail.value;
-  const indicator = this.indicators.find((ind) => ind.name === indicatorName);
-
-  const conditionGroup = this.conditions.at(conditionIndex) as FormGroup;
-
-  if (indicator) {
-    // Set indicator lines
-    this.indicatorLines[conditionIndex] = indicator.lines;
-
-    // Initialize parameter controls
-    const parameters: IndicatorParameter[] = indicator.parameters || [];
-
-    const parametersGroup = this.fb.group({});
-    parameters.forEach((param: IndicatorParameter) => {
-      parametersGroup.addControl(
-        param.name,
-        new FormControl(
-          param.default_value || '',
-          param.required ? Validators.required : []
-        )
-      );
-    });
-    conditionGroup.setControl('parameters', parametersGroup);
-    this.indicatorParameters[conditionIndex] = parameters;
-  } else {
-    // Handle case where indicator is not found
-    this.indicatorLines[conditionIndex] = [];
-    if (conditionGroup.contains('parameters')) {
-      conditionGroup.removeControl('parameters');
+    if (valueType === 'NUMBER') {
+      conditionGroup.get('value_number')?.setValidators([Validators.required]);
+    } else if (valueType === 'INDICATOR_LINE') {
+      conditionGroup.get('value_indicator')?.setValidators([Validators.required]);
+      conditionGroup.get('value_indicator_line')?.setValidators([Validators.required]);
+      conditionGroup.get('value_timeframe')?.setValidators([Validators.required]);
     }
-    this.indicatorParameters[conditionIndex] = [];
+
+    // Update validity
+    conditionGroup.get('value_number')?.updateValueAndValidity();
+    conditionGroup.get('value_indicator')?.updateValueAndValidity();
+    conditionGroup.get('value_indicator_line')?.updateValueAndValidity();
+    conditionGroup.get('value_timeframe')?.updateValueAndValidity();
   }
-}
 
-onValueIndicatorChange(event: any, conditionIndex: number) {
-  const indicatorName = event.detail.value;
-  const indicator = this.indicators.find(ind => ind.name === indicatorName);
+  onIndicatorChange(event: any, conditionIndex: number) {
+    const indicatorName = event.detail.value;
+    const indicator = this.indicators.find((ind) => ind.name === indicatorName);
 
-  const conditionGroup = this.conditions.at(conditionIndex) as FormGroup;
+    const conditionGroup = this.conditions.at(conditionIndex) as FormGroup;
 
-  if (indicator) {
-    // Load value indicator lines
-    this.loadValueIndicatorLines(indicatorName, conditionIndex);
+    if (indicator) {
+      // Set indicator lines
+      this.indicatorLines[conditionIndex] = indicator.lines;
 
-    // Initialize parameter controls for value_indicator
-    const parameters: IndicatorParameter[] = indicator.parameters || [];
+      // Initialize parameter controls
+      const parameters: IndicatorParameter[] = indicator.parameters || [];
 
-    const valueParametersGroup = this.fb.group({});
-    parameters.forEach((param: IndicatorParameter) => {
-      valueParametersGroup.addControl(
-        param.name,
-        new FormControl(
-          param.default_value || '',
-          param.required ? Validators.required : []
-        )
-      );
-    });
-
-    conditionGroup.setControl('value_parameters', valueParametersGroup);
-
-    // Store parameters for the template
-    this.valueIndicatorParameters[conditionIndex] = parameters;
-  } else {
-    // Handle case where indicator is not found
-    this.valueIndicatorLines[conditionIndex] = [];
-    if (conditionGroup.contains('value_parameters')) {
-      conditionGroup.removeControl('value_parameters');
+      const parametersGroup = this.fb.group({});
+      parameters.forEach((param: IndicatorParameter) => {
+        parametersGroup.addControl(
+          param.name,
+          new FormControl(
+            param.default_value || '',
+            param.required ? Validators.required : []
+          )
+        );
+      });
+      conditionGroup.setControl('parameters', parametersGroup);
+      this.indicatorParameters[conditionIndex] = parameters;
+    } else {
+      // Handle case where indicator is not found
+      this.indicatorLines[conditionIndex] = [];
+      if (conditionGroup.contains('parameters')) {
+        conditionGroup.removeControl('parameters');
+      }
+      this.indicatorParameters[conditionIndex] = [];
     }
-    this.valueIndicatorParameters[conditionIndex] = [];
   }
-}
+
+  onValueIndicatorChange(event: any, conditionIndex: number) {
+    const indicatorName = event.detail.value;
+    const indicator = this.indicators.find(ind => ind.name === indicatorName);
+
+    const conditionGroup = this.conditions.at(conditionIndex) as FormGroup;
+
+    if (indicator) {
+      // Load value indicator lines
+      this.loadValueIndicatorLines(indicatorName, conditionIndex);
+
+      // Initialize parameter controls for value_indicator
+      const parameters: IndicatorParameter[] = indicator.parameters || [];
+
+      const valueParametersGroup = this.fb.group({});
+      parameters.forEach((param: IndicatorParameter) => {
+        valueParametersGroup.addControl(
+          param.name,
+          new FormControl(
+            param.default_value || '',
+            param.required ? Validators.required : []
+          )
+        );
+      });
+
+      conditionGroup.setControl('value_parameters', valueParametersGroup);
+
+      // Store parameters for the template
+      this.valueIndicatorParameters[conditionIndex] = parameters;
+    } else {
+      // Handle case where indicator is not found
+      this.valueIndicatorLines[conditionIndex] = [];
+      if (conditionGroup.contains('value_parameters')) {
+        conditionGroup.removeControl('value_parameters');
+      }
+      this.valueIndicatorParameters[conditionIndex] = [];
+    }
+  }
 
 
   initializeForm() {
@@ -466,157 +511,91 @@ loadIndicatorDataForCondition(index: number, condition: any) {
         updatedData.check_interval = formValue.check_interval;
       }
 
-      this.apiService.updateAlert(this.alertId, updatedData).subscribe(
-        async () => {
-          // Success
-          console.log('Alert updated successfully');
-          const successAlert = await this.alertController.create({
-            header: 'Success',
-            message: 'Alert updated successfully.',
-            buttons: ['OK'],
-          });
-          await successAlert.present();
-          this.router.navigate(['/alert-detail', this.alertId]);
-        },
-        async (error) => {
-          console.error('Error updating alert:', error);
+    this.apiService.updateAlert(this.alertId, updatedData).subscribe(
+      async () => {
+        // Success
+        console.log('Alert updated successfully');
+        const successAlert = await this.alertController.create({
+          header: 'Success',
+          message: 'Alert updated successfully.',
+          buttons: ['OK'],
+        });
+        await successAlert.present();
+        this.router.navigate(['/alert-detail', this.alertId]);
+      },
+      async (error) => {
+        console.error('Error updating alert:', error);
 
-          // If it's a 400 from DRF, we might have field-level errors
-          if (error.status === 400 && error.error) {
-            // Attempt to apply these errors to our FormControls
-            this.applyInlineErrors(error.error);
+        if (error.status === 400 && error.error) {
+          // Backend error parsing
+          console.log('DEBUG: Backend error response', error.error);
 
-            // Handle indicator_parameters.length error if present
-            if (error.error.conditions) {
-              Object.keys(error.error.conditions).forEach((index) => {
-                const conditionErrors = error.error.conditions[index];
-                const conditionGroup = this.conditions.at(Number(index)) as FormGroup;
+          if (error.error.conditions) {
+            Object.keys(error.error.conditions).forEach((index) => {
+              const conditionErrors = error.error.conditions[index];
+              console.log(`DEBUG: Processing condition index ${index}`, conditionErrors);
 
-                if (conditionErrors?.indicator_parameters?.length) {
-                  const msg = conditionErrors.indicator_parameters.length.join(' ');
-                  const lengthCtrl = conditionGroup.get('parameters')?.get('length');
+              const conditionGroup = this.conditions.at(Number(index)) as FormGroup;
+
+              if (!conditionGroup) {
+                console.warn(`WARNING: No conditionGroup found at index ${index}`);
+                return;
+              }
+
+              // Log condition group structure
+              console.log(`DEBUG: Condition Group at index ${index}`, conditionGroup.value);
+
+              // Handle `indicator_parameters.length` error
+              if (conditionErrors?.length) {
+                const msg = conditionErrors.length.join(' ');
+
+                // Locate the 'length' control within the 'parameters' group
+                const parametersGroup = conditionGroup.get('parameters') as FormGroup;
+                if (parametersGroup) {
+                  const lengthCtrl = parametersGroup.get('length');
                   if (lengthCtrl) {
+                    console.log('DEBUG: Found length control, applying error');
                     lengthCtrl.setErrors({ customError: msg });
+                  } else {
+                    console.warn('WARNING: Length control not found in parameters group');
                   }
+                } else {
+                  console.warn('WARNING: Parameters group not found in condition group');
+                }
+              }
+
+              // Handle other condition-level errors
+              Object.keys(conditionErrors).forEach((fieldKey) => {
+                const control = conditionGroup.get(fieldKey);
+                if (control) {
+                  const errorMsgArray = conditionErrors[fieldKey];
+                  control.setErrors({ customError: errorMsgArray.join(' ') });
+                } else {
+                  console.warn(`WARNING: Control for fieldKey "${fieldKey}" not found`);
                 }
               });
-            }
-
-            // Optionally show a top-level error
-            const errorAlert = await this.alertController.create({
-              header: 'Validation Error',
-              message: 'Please correct the highlighted fields.',
-              buttons: ['OK'],
             });
-            await errorAlert.present();
-          } else {
-            // For non-400 errors, do a general message
-            const errorAlert = await this.alertController.create({
-              header: 'Error',
-              message: 'Failed to update alert.',
-              buttons: ['OK'],
-            });
-            await errorAlert.present();
           }
-        }
-      );
 
-    } else {
-      // Form is invalid at client side
-      const invalidAlert = await this.alertController.create({
-        header: 'Invalid Form',
-        message: 'Please ensure all required fields are filled correctly.',
-        buttons: ['OK'],
-      });
-      await invalidAlert.present();
-    }
-  }
-  private applyInlineErrors(errors: any) {
-    /*
-      Example DRF error structure could look like:
-      {
-        "conditions": {
-          "0": {
-            "indicator_parameters": {
-              "length": ["Maximum allowed length is 400."]
-            }
-          },
-          ...
-        },
-        "check_interval": ["Ensure this value is >= 1."]
-      }
-
-      We'll try to match these paths to the form:
-      this.editAlertForm.get('conditions').at(0).get('parameters.length')
-      this.editAlertForm.get('check_interval')
-    */
-
-    // 1) If there's a top-level error on "check_interval" or "is_active", handle that first
-    if (errors.check_interval && Array.isArray(errors.check_interval)) {
-      const ctrl = this.editAlertForm.get('check_interval');
-      if (ctrl) {
-        ctrl.setErrors({ customError: errors.check_interval.join(' ') });
-      }
-    }
-    if (errors.is_active && Array.isArray(errors.is_active)) {
-      const ctrl = this.editAlertForm.get('is_active');
-      if (ctrl) {
-        ctrl.setErrors({ customError: errors.is_active.join(' ') });
-      }
-    }
-
-    // 2) If "conditions" errors exist
-    if (errors.conditions && typeof errors.conditions === 'object') {
-      // "conditions" is an object like { "0": { ... }, "1": { ... } }
-      const conditionsErrors = errors.conditions;
-      Object.keys(conditionsErrors).forEach((indexStr) => {
-        const idx = parseInt(indexStr, 10);
-        const conditionErrors = conditionsErrors[indexStr];
-
-        // Our form array item
-        const conditionGroup = this.conditions.at(idx) as FormGroup;
-
-        // Possibly there's an error directly on conditionGroup
-        if (Array.isArray(conditionErrors)) {
-          // e.g. "conditions.0": ["Some error"]
-          // We'll set a custom error on the group
-          conditionGroup.setErrors({ customError: conditionErrors.join(' ') });
-        } else if (typeof conditionErrors === 'object') {
-          // More specific fields
-          // e.g. "indicator_parameters": { "length": ["Max length is 400"] }
-          if (conditionErrors.indicator_parameters) {
-            this.applyIndicatorParametersErrors(conditionGroup, conditionErrors.indicator_parameters);
-          }
-          // We might also see errors on "indicator_timeframe", "value_type", etc.
-          if (conditionErrors.indicator_timeframe && Array.isArray(conditionErrors.indicator_timeframe)) {
-            const ctrl = conditionGroup.get('indicator_timeframe');
-            ctrl?.setErrors({ customError: conditionErrors.indicator_timeframe.join(' ') });
-          }
-          // ... similarly handle other fields ...
-        }
-      });
-    }
-  }
-
-  /**
-   * Applies inline errors to the "parameters" formGroup inside a condition,
-   * matching keys with the respective parameter controls.
-   */
-  private applyIndicatorParametersErrors(conditionGroup: FormGroup, paramErrors: any) {
-    // paramErrors might look like { "length": ["Max is 400"], "anotherParam": ["invalid"] }
-    const parametersGroup = conditionGroup.get('parameters') as FormGroup;
-    if (!parametersGroup) return;
-
-    // For each param name in paramErrors
-    Object.keys(paramErrors).forEach((paramName) => {
-      const paramMessages = paramErrors[paramName];
-      if (Array.isArray(paramMessages)) {
-        // "length": ["Maximum allowed length is 400."]
-        const paramCtrl = parametersGroup.get(paramName);
-        if (paramCtrl) {
-          paramCtrl.setErrors({ customError: paramMessages.join(' ') });
+          // Show a validation error modal
+          const errorAlert = await this.alertController.create({
+            header: 'Validation Error',
+            message: 'Please correct the highlighted fields.',
+            buttons: ['OK'],
+          });
+          await errorAlert.present();
+        } else {
+          // Handle general errors
+          const errorAlert = await this.alertController.create({
+            header: 'Error',
+            message: 'Failed to update alert.',
+            buttons: ['OK'],
+          });
+          await errorAlert.present();
         }
       }
-    });
+    );
+
+    }
   }
 }
