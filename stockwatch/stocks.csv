@@ -1,6 +1,525 @@
-symbol,name
-AAPL,Apple Inc.
-MSFT,Microsoft Corporation
-GOOGL,Alphabet Inc.
-AMZN,Amazon.com, Inc.
-TSLA,Tesla, Inc.
+symbol,name,sector,asset_type
+AAPL,Apple Inc.,Technology,Stock
+MSFT,Microsoft Corporation,Technology,Stock
+GOOGL,Alphabet Inc.,Technology,Stock
+AMZN,Amazon.com, Inc.,Consumer Discretionary,Stock
+TSLA,Tesla, Inc.,Automotive,Stock
+NVDA,NVIDIA Corporation,Technology,Stock
+META,Meta Platforms Inc.,Technology,Stock
+IBM,International Business Machines,Technology,Stock
+ADBE,Adobe Inc.,Technology,Stock
+CRM,Salesforce, Inc.,Technology,Stock
+ORCL,Oracle Corporation,Technology,Stock
+INTC,Intel Corporation,Technology,Stock
+AMD,Advanced Micro Devices, Inc.,Technology,Stock
+CSCO,Cisco Systems, Inc.,Technology,Stock
+SHOP,Shopify Inc.,Technology,Stock
+UBER,Uber Technologies, Inc.,Technology,Stock
+WMT,Walmart Inc.,Consumer Staples,Stock
+TGT,Target Corporation,Consumer Discretionary,Stock
+KO,The Coca-Cola Company,Consumer Staples,Stock
+PEP,PepsiCo, Inc.,Consumer Staples,Stock
+PG,Procter & Gamble Company,Consumer Staples,Stock
+MCD,McDonald's Corporation,Consumer Discretionary,Stock
+NKE,Nike, Inc.,Consumer Discretionary,Stock
+SBUX,Starbucks Corporation,Consumer Discretionary,Stock
+XOM,Exxon Mobil Corporation,Energy,Stock
+CVX,Chevron Corporation,Energy,Stock
+BP,BP plc,Energy,Stock
+TTE,TotalEnergies SE,Energy,Stock
+JPM,JPMorgan Chase & Co.,Financials,Stock
+BAC,Bank of America Corporation,Financials,Stock
+WFC,Wells Fargo & Company,Financials,Stock
+GS,Goldman Sachs Group, Inc.,Financials,Stock
+JNJ,Johnson & Johnson,Healthcare,Stock
+PFE,Pfizer, Inc.,Healthcare,Stock
+MRNA,Moderna, Inc.,Healthcare,Stock
+LLY,Eli Lilly and Company,Healthcare,Stock
+ABT,Abbott Laboratories,Healthcare,Stock
+TMO,Thermo Fisher Scientific, Inc.,Healthcare,Stock
+CVS,CVS Health Corporation,Healthcare,Stock
+UNH,UnitedHealth Group Incorporated,Healthcare,Stock
+HD,Home Depot, Inc.,Consumer Discretionary,Stock
+LOW,Lowe's Companies, Inc.,Consumer Discretionary,Stock
+COST,Costco Wholesale Corporation,Consumer Staples,Stock
+T,AT&T Inc.,Communication Services,Stock
+VZ,Verizon Communications, Inc.,Communication Services,Stock
+DIS,The Walt Disney Company,Communication Services,Stock
+NFLX,Netflix, Inc.,Communication Services,Stock
+CMCSA,Comcast Corporation,Communication Services,Stock
+TM, Toyota Motor Corporation,Automotive,Stock
+GM,General Motors Company,Automotive,Stock
+F,Ford Motor Company,Automotive,Stock
+RIVN,Rivian Automotive, Inc.,Automotive,Stock
+NIO,NIO Inc.,Automotive,Stock
+PLTR,Palantir Technologies Inc.,Technology,Stock
+SQ,Block, Inc.,Financials,Stock
+PYPL,PayPal Holdings, Inc.,Financials,Stock
+MA,Mastercard Incorporated,Financials,Stock
+V,Visa Inc.,Financials,Stock
+AXP,American Express Company,Financials,Stock
+ADP,Automatic Data Processing, Inc.,Technology,Stock
+NOW,ServiceNow, Inc.,Technology,Stock
+PANW,Palo Alto Networks, Inc.,Technology,Stock
+ZS,Zscaler, Inc.,Technology,Stock
+NET,Cloudflare, Inc.,Technology,Stock
+OKTA,Okta, Inc.,Technology,Stock
+DOCU,DocuSign, Inc.,Technology,Stock
+SNOW,Snowflake, Inc.,Technology,Stock
+MDB,MongoDB, Inc.,Technology,Stock
+DDOG,Datadog, Inc.,Technology,Stock
+ZSAN,Zosano Pharma Corporation,Pharmaceuticals,Stock
+REGN,Regeneron Pharmaceuticals, Inc.,Pharmaceuticals,Stock
+VRTX,Vertex Pharmaceuticals Incorporated,Pharmaceuticals,Stock
+AMGN,Amgen Inc.,Biotechnology,Stock
+BIIB,Biogen Inc.,Biotechnology,Stock
+GILD,Gilead Sciences, Inc.,Biotechnology,Stock
+VRTX,Vertex Pharmaceuticals Incorporated,Healthcare,Stock
+ABBV,AbbVie Inc.,Healthcare,Stock
+MO,Altria Group, Inc.,Consumer Staples,Stock
+PM,Philip Morris International, Inc.,Consumer Staples,Stock
+KHC,Kraft Heinz Company,Consumer Staples,Stock
+MDLZ,Mondelez International, Inc.,Consumer Staples,Stock
+GIS,General Mills, Inc.,Consumer Staples,Stock
+K,Kellogg Company,Consumer Staples,Stock
+WBA,Walgreens Boots Alliance, Inc.,Healthcare,Stock
+CL,Colgate-Palmolive Company,Consumer Staples,Stock
+CLX,Clorox Company,Consumer Staples,Stock
+CVNA,Carvana Co.,Automotive,Stock
+ETSY,Etsy, Inc.,Consumer Discretionary,Stock
+ROKU,Roku, Inc.,Consumer Discretionary,Stock
+PINS,Pinterest, Inc.,Communication Services,Stock
+TWTR,X Corp (Twitter),Communication Services,Stock
+BZFD,BuzzFeed, Inc.,Communication Services,Stock
+SPOT,Spotify Technology S.A.,Communication Services,Stock
+ZM,Zoom Video Communications, Inc.,Technology,Stock
+DOCS,Doximity, Inc.,Healthcare,Stock
+CROX,Crocs, Inc.,Consumer Discretionary,Stock
+HAS,Hasbro, Inc.,Consumer Discretionary,Stock
+MAT,Mattel, Inc.,Consumer Discretionary,Stock
+NWS,News Corporation,Communication Services,Stock
+NWSA,News Corporation (Class A),Communication Services,Stock
+FOX,Fox Corporation,Communication Services,Stock
+FOXA,Fox Corporation (Class A),Communication Services,Stock
+GME,GameStop Corp.,Consumer Discretionary,Stock
+AMC,AMC Entertainment Holdings, Inc.,Consumer Discretionary,Stock
+BB,BlackBerry Limited,Technology,Stock
+BBY,Best Buy Co., Inc.,Consumer Discretionary,Stock
+DISH,DISH Network Corporation,Communication Services,Stock
+HBO,HBO Max,Communication Services,Stock
+HPE,Hewlett Packard Enterprise Company,Technology,Stock
+HPQ,HP Inc.,Technology,Stock
+DKNG,DraftKings Inc.,Consumer Discretionary,Stock
+ATVI,Activision Blizzard, Inc.,Technology,Stock
+EA,Electronic Arts Inc.,Technology,Stock
+TTWO,Take-Two Interactive Software, Inc.,Technology,Stock
+symbol,name,sector,asset_type
+ROBL,Roblox Corporation,Technology,Stock
+LYFT,Lyft, Inc.,Technology,Stock
+CZR,Caesars Entertainment, Inc.,Consumer Discretionary,Stock
+MGM,MGM Resorts International,Consumer Discretionary,Stock
+HCA,HCA Healthcare, Inc.,Healthcare,Stock
+BDX,Becton, Dickinson and Company,Healthcare,Stock
+ISRG,Intuitive Surgical, Inc.,Healthcare,Stock
+EW,Edwards Lifesciences Corporation,Healthcare,Stock
+ZBH,Zimmer Biomet Holdings, Inc.,Healthcare,Stock
+STZ,Constellation Brands, Inc.,Consumer Staples,Stock
+DHR,Danaher Corporation,Healthcare,Stock
+APD,Air Products and Chemicals, Inc.,Materials,Stock
+LIN,Linde plc,Materials,Stock
+CAT,Caterpillar Inc.,Industrials,Stock
+DE,Deere & Company,Industrials,Stock
+BA,Boeing Company,Industrials,Stock
+LMT,Lockheed Martin Corporation,Industrials,Stock
+NOC,Northrop Grumman Corporation,Industrials,Stock
+RTX,Raytheon Technologies Corporation,Industrials,Stock
+TSM,Taiwan Semiconductor Manufacturing Company Limited,Technology,Stock
+ASML,ASML Holding N.V.,Technology,Stock
+BABA,Alibaba Group Holding Limited,Technology,Stock
+JD,JD.com, Inc.,Technology,Stock
+PDD,Pinduoduo Inc.,Technology,Stock
+TCEHY,Tencent Holdings Limited,Technology,Stock
+NTES,NetEase, Inc.,Technology,Stock
+BIDU,Baidu, Inc.,Technology,Stock
+COST,Costco Wholesale Corporation,Consumer Staples,Stock
+KR,Kroger Co.,Consumer Staples,Stock
+DG,Dollar General Corporation,Consumer Staples,Stock
+DLTR,Dollar Tree, Inc.,Consumer Staples,Stock
+CVS,CVS Health Corporation,Healthcare,Stock
+AMT,American Tower Corporation,Real Estate,Stock
+PLD,Prologis, Inc.,Real Estate,Stock
+CCI,Crown Castle Inc.,Real Estate,Stock
+SPG,Simon Property Group, Inc.,Real Estate,Stock
+WPC,W. P. Carey Inc.,Real Estate,Stock
+DLR,Digital Realty Trust, Inc.,Real Estate,Stock
+O,Realty Income Corporation,Real Estate,Stock
+PSA,Public Storage,Real Estate,Stock
+ARE,Alexandria Real Estate Equities, Inc.,Real Estate,Stock
+EXR,Extra Space Storage, Inc.,Real Estate,Stock
+REG,Regency Centers Corporation,Real Estate,Stock
+FRT,Federal Realty Investment Trust,Real Estate,Stock
+WELL,Welltower Inc.,Real Estate,Stock
+VTR,Ventas, Inc.,Real Estate,Stock
+HST,Host Hotels & Resorts, Inc.,Real Estate,Stock
+GLPI,Gaming and Leisure Properties, Inc.,Real Estate,Stock
+IRM,Iron Mountain Incorporated,Real Estate,Stock
+DOC,Physicians Realty Trust,Real Estate,Stock
+MPW,Medical Properties Trust, Inc.,Real Estate,Stock
+AEE,Ameren Corporation,Utilities,Stock
+AEP,American Electric Power Company, Inc.,Utilities,Stock
+AES,AES Corporation,Utilities,Stock
+CMS,CMS Energy Corporation,Utilities,Stock
+CNP,CenterPoint Energy, Inc.,Utilities,Stock
+ED,Consolidated Edison, Inc.,Utilities,Stock
+DUK,Duke Energy Corporation,Utilities,Stock
+EIX,Edison International,Utilities,Stock
+ES,Eversource Energy,Utilities,Stock
+EXC,Exelon Corporation,Utilities,Stock
+FE,FirstEnergy Corp.,Utilities,Stock
+NEE,NextEra Energy, Inc.,Utilities,Stock
+NRG,NRG Energy, Inc.,Utilities,Stock
+PCG,PG&E Corporation,Utilities,Stock
+PNW,Pinnacle West Capital Corporation,Utilities,Stock
+PPL,PPL Corporation,Utilities,Stock
+SRE,Sempra Energy,Utilities,Stock
+SO,The Southern Company,Utilities,Stock
+XEL,Xcel Energy Inc.,Utilities,Stock
+ET,Energy Transfer LP,Energy,Stock
+EPD,Enterprise Products Partners L.P.,Energy,Stock
+OKE,ONEOK, Inc.,Energy,Stock
+MPLX,MPLX LP,Energy,Stock
+PAA,Plains All American Pipeline, L.P.,Energy,Stock
+WMB,The Williams Companies, Inc.,Energy,Stock
+PSX,Phillips 66,Energy,Stock
+VLO,Valero Energy Corporation,Energy,Stock
+HES,Hess Corporation,Energy,Stock
+OXY,Occidental Petroleum Corporation,Energy,Stock
+SLB,Schlumberger Limited,Energy,Stock
+BKR,Baker Hughes Company,Energy,Stock
+HAL,Halliburton Company,Energy,Stock
+HP,Helmerich & Payne, Inc.,Energy,Stock
+RIG,Transocean Ltd.,Energy,Stock
+PXD,Pioneer Natural Resources Company,Energy,Stock
+CLR,Continental Resources, Inc.,Energy,Stock
+EOG,EOG Resources, Inc.,Energy,Stock
+FANG,Diamondback Energy, Inc.,Energy,Stock
+HFC,HollyFrontier Corporation,Energy,Stock
+MRO,Marathon Oil Corporation,Energy,Stock
+MPC,Marathon Petroleum Corporation,Energy,Stock
+COP,ConocoPhillips,Energy,Stock
+KMI,Kinder Morgan, Inc.,Energy,Stock
+CLF,Cleveland-Cliffs Inc.,Materials,Stock
+NUE,Nucor Corporation,Materials,Stock
+STLD,Steel Dynamics, Inc.,Materials,Stock
+X,United States Steel Corporation,Materials,Stock
+AA,Alcoa Corporation,Materials,Stock
+FCX,Freeport-McMoRan Inc.,Materials,Stock
+GOLD,Barrick Gold Corporation,Materials,Stock
+NEM,Newmont Corporation,Materials,Stock
+WPM,Wheaton Precious Metals Corp.,Materials,Stock
+AG,First Majestic Silver Corp.,Materials,Stock
+PAAS,Pan American Silver Corp.,Materials,Stock
+HL,Hecla Mining Company,Materials,Stock
+FSM,Fortuna Silver Mines Inc.,Materials,Stock
+symbol,name,sector,asset_type
+RACE.MI,Ferrari,Luxury,Stock
+NESN.S,Nestle,Consumer Staples,Stock
+AIR.PA,Airbus,Aerospace & Defense,Stock
+OR.PA,L'Oreal,Luxury,Stock
+SAP.DE,SAP,Technology,Stock
+BMW.DE,BMW,Automobile,Stock
+VOW3.DE,Volkswagen,Automobile,Stock
+ASML.AS,ASML Holding,Technology,Stock
+ADYEN.AS,Adyen,Financial Technology,Stock
+HEIA.AS,Heineken,Consumer Staples,Stock
+SIE.DE,Siemens,Industrial,Stock
+BAS.DE,BASF,Materials,Stock
+ENEL.MI,Enel,Utilities,Stock
+SAN.PA,Sanofi,Pharmaceuticals,Stock
+BNP.PA,BNP Paribas,Financial Services,Stock
+DB1.DE,Deutsche Boerse,Financial Services,Stock
+RWE.DE,RWE,Utilities,Stock
+LHA.DE,Lufthansa,Airlines,Stock
+ORL.PA,Orange,Telecommunications,Stock
+TOTF.PA,TotalEnergies,Energy,Stock
+STLA.MI,Stellantis,Automobile,Stock
+ULVR.L,Unilever,Consumer Staples,Stock
+DGE.L,Diageo,Consumer Staples,Stock
+GLEN.L,Glencore,Materials,Stock
+RIO.L,Rio Tinto,Materials,Stock
+BARC.L,Barclays,Financial Services,Stock
+HSBA.L,HSBC,Financial Services,Stock
+BP.L,BP,Energy,Stock
+SHEL.L,Shell,Energy,Stock
+RR.L,Rolls-Royce,Aerospace & Defense,Stock
+EZJ.L,EasyJet,Airlines,Stock
+VOD.L,Vodafone,Telecommunications,Stock
+ABB.ST,ABB,Industrial,Stock
+ERIC-B.ST,Ericsson,Telecommunications,Stock
+VOLV-B.ST,Volvo,Automobile,Stock
+KINV-B.ST,Kinnevik,Investment,Stock
+TEL2-B.ST,Tele2,Telecommunications,Stock
+NDA-SE.ST,Nordea,Financial Services,Stock
+SAAB-B.ST,SAAB,Aerospace & Defense,Stock
+KNEBV.HE,Kone,Industrial,Stock
+NOKIA.HE,Nokia,Telecommunications,Stock
+FORTUM.HE,Fortum,Utilities,Stock
+WRT1V.HE,Wartsila,Industrial,Stock
+DSM.AS,DSM,Materials,Stock
+PHIA.AS,Philips,Healthcare,Stock
+RAND.AS,Randstad,Human Resources,Stock
+IMCD.AS,IMCD,Materials,Stock
+MT.AS,ArcelorMittal,Materials,Stock
+EONGY.DE,E.ON,Utilities,Stock
+FRE.DE,Fresenius,Healthcare,Stock
+BAYN.DE,Bayer,Pharmaceuticals,Stock
+IFX.DE,Infineon,Technology,Stock
+MRK.DE,Merck,Pharmaceuticals,Stock
+ZAL.DE,Zalando,Retail,Stock
+HMB.ST,H&M,Retail,Stock
+ALFA.ST,Alfa Laval,Industrial,Stock
+SEB-A.ST,SEB Bank,Financial Services,Stock
+SWED-A.ST,Swedbank,Financial Services,Stock
+SKF-B.ST,SKF,Industrial,Stock
+MUN.S,Munich Re,Insurance,Stock
+ALV.DE,Allianz,Insurance,Stock
+VNA.DE,Vonovia,Real Estate,Stock
+BN.PA,Danone,Consumer Staples,Stock
+KER.PA,Kering,Luxury,Stock
+MC.PA,LVMH,Luxury,Stock
+ENGI.PA,Engie,Utilities,Stock
+ML.PA,Michelin,Automobile,Stock
+SGO.PA,Saint-Gobain,Materials,Stock
+SU.PA,Schneider Electric,Industrial,Stock
+EDF.PA,EDF,Utilities,Stock
+CS.PA,AXA,Insurance,Stock
+ACA.PA,Crédit Agricole,Financial Services,Stock
+PUB.PA,Publicis Groupe,Advertising,Stock
+EL.PA,Hermès,Luxury,Stock
+BNP.DE,Brenntag,Materials,Stock
+VOW.DE,Volkswagen (Preference),Automobile,Stock
+CON.DE,Continental,Automobile,Stock
+HEN3.DE,Henkel,Consumer Staples,Stock
+FME.DE,Fresenius Medical Care,Healthcare,Stock
+BOSS.DE,Hugo Boss,Luxury,Stock
+LIN.DE,Linde,Materials,Stock
+PUM.DE,Puma,Luxury,Stock
+DHER.DE,Delivery Hero,Technology,Stock
+1COV.DE,Covestro,Materials,Stock
+ENR.DE,Siemens Energy,Energy,Stock
+CFR.S,Richemont,Luxury,Stock
+ROG.S,Roche,Pharmaceuticals,Stock
+NESN.S,Nestlé,Consumer Staples,Stock
+UBSG.S,UBS,Financial Services,Stock
+NOVN.S,Novartis,Pharmaceuticals,Stock
+CSGN.S,Credit Suisse,Financial Services,Stock
+ADEN.S,Adecco,Human Resources,Stock
+ABB.S,ABB,Industrial,Stock
+SGSN.S,SGS,Inspection Services,Stock
+LONN.S,Lonza,Pharmaceuticals,Stock
+GEBN.S,Geberit,Materials,Stock
+SWX:SIXT.S,Sixt,Automobile Rentals,Stock
+ACA.S,Sika,Materials,Stock
+ASRNL.AS,ASR Nederland,Insurance,Stock
+REL.L,Relx,Media,Stock
+III.L,3i Group,Investment,Stock
+LLOY.L,Lloyds Banking Group,Financial Services,Stock
+ANTO.L,Antofagasta,Materials,Stock
+POLY.L,Polymetal,Materials,Stock
+AV.L,Aviva,Insurance,Stock
+BDEV.L,Barratt Developments,Real Estate,Stock
+LAND.L,Land Securities Group,Real Estate,Stock
+SGE.L,Sage Group,Technology,Stock
+SMT.L,Scottish Mortgage Investment Trust,Investment,Stock
+PSN.L,Persimmon,Real Estate,Stock
+WPP.L,WPP,Advertising,Stock
+STJ.L,St. James’s Place,Financial Services,Stock
+EXPN.L,Experian,Technology,Stock
+GLB.L,Globe Life,Insurance,Stock
+ULC.L,Ultra Electronics,Defense,Stock
+SEV.DE,Secunet Security Networks,Technology,Stock
+NXI.PA,Nexity,Real Estate,Stock
+RMS.PA,Rémy Cointreau,Luxury,Stock
+ALO.PA,Alstom,Industrial,Stock
+TTE.PA,TotalEnergies,Energy,Stock
+BPOST.BR,Bpost,Logistics,Stock
+COLR.BR,Colruyt,Consumer Staples,Stock
+SOF.BR,Sofina,Investment,Stock
+ONV.PA,Orange Belgium,Telecommunications,Stock
+BTC-USD,Bitcoin,Cryptocurrency,Crypto
+ETH-USD,Ethereum,Cryptocurrency,Crypto
+BNB-USD,BNB,Cryptocurrency,Crypto
+XRP-USD,XRP,Cryptocurrency,Crypto
+ADA-USD,Cardano,Cryptocurrency,Crypto
+SOL-USD,Solana,Cryptocurrency,Crypto
+DOGE-USD,Dogecoin,Cryptocurrency,Crypto
+DOT-USD,Polkadot,Cryptocurrency,Crypto
+MATIC-USD,Polygon,Cryptocurrency,Crypto
+SHIB-USD,Shiba Inu,Cryptocurrency,Crypto
+LTC-USD,Litecoin,Cryptocurrency,Crypto
+AVAX-USD,Avalanche,Cryptocurrency,Crypto
+TRX-USD,TRON,Cryptocurrency,Crypto
+UNI-USD,Uniswap,Cryptocurrency,Crypto
+LINK-USD,Chainlink,Cryptocurrency,Crypto
+ATOM-USD,Cosmos,Cryptocurrency,Crypto
+XMR-USD,Monero,Cryptocurrency,Crypto
+ALGO-USD,Algorand,Cryptocurrency,Crypto
+ETC-USD,Ethereum Classic,Cryptocurrency,Crypto
+FTM-USD,Fantom,Cryptocurrency,Crypto
+FIL-USD,Filecoin,Cryptocurrency,Crypto
+XTZ-USD,Tezos,Cryptocurrency,Crypto
+NEAR-USD,Near Protocol,Cryptocurrency,Crypto
+VET-USD,VeChain,Cryptocurrency,Crypto
+EOS-USD,EOS,Cryptocurrency,Crypto
+THETA-USD,Theta Network,Cryptocurrency,Crypto
+AAVE-USD,Aave,Cryptocurrency,Crypto
+MKR-USD,Maker,Cryptocurrency,Crypto
+COMP-USD,Compound,Cryptocurrency,Crypto
+ZEC-USD,Zcash,Cryptocurrency,Crypto
+SAND-USD,The Sandbox,Cryptocurrency,Crypto
+MANA-USD,Decentraland,Cryptocurrency,Crypto
+CHZ-USD,Chiliz,Cryptocurrency,Crypto
+ENJ-USD,Enjin Coin,Cryptocurrency,Crypto
+AXS-USD,Axie Infinity,Cryptocurrency,Crypto
+GRT-USD,The Graph,Cryptocurrency,Crypto
+YFI-USD,yearn.finance,Cryptocurrency,Crypto
+CRV-USD,Curve DAO Token,Cryptocurrency,Crypto
+DYDX-USD,dYdX,Cryptocurrency,Crypto
+1INCH-USD,1inch,Cryptocurrency,Crypto
+BAT-USD,Basic Attention Token,Cryptocurrency,Crypto
+REN-USD,Ren,Cryptocurrency,Crypto
+ZIL-USD,Zilliqa,Cryptocurrency,Crypto
+ICX-USD,ICON,Cryptocurrency,Crypto
+QTUM-USD,Qtum,Cryptocurrency,Crypto
+KAVA-USD,Kava,Cryptocurrency,Crypto
+ONT-USD,Ontology,Cryptocurrency,Crypto
+OMG-USD,OMG Network,Cryptocurrency,Crypto
+XLM-USD,Stellar Lumens,Cryptocurrency,Crypto
+HBAR-USD,Hedera,Cryptocurrency,Crypto
+EGLD-USD,Elrond,Cryptocurrency,Crypto
+CRO-USD,Crypto.com Coin,Cryptocurrency,Crypto
+LUNA-USD,TERRA,Cryptocurrency,Crypto
+KLAY-USD,Klaytn,Cryptocurrency,Crypto
+CAKE-USD,PancakeSwap,Cryptocurrency,Crypto
+ANKR-USD,Ankr,Cryptocurrency,Crypto
+RUNE-USD,THORChain,Cryptocurrency,Crypto
+HOT-USD,Holo,Cryptocurrency,Crypto
+CEL-USD,Celsius Network,Cryptocurrency,Crypto
+HNT-USD,Helium,Cryptocurrency,Crypto
+IOST-USD,IOST,Cryptocurrency,Crypto
+WAVES-USD,Waves,Cryptocurrency,Crypto
+FTT-USD,FTX Token,Cryptocurrency,Crypto
+BTT-USD,BitTorrent,Cryptocurrency,Crypto
+GALA-USD,Gala Games,Cryptocurrency,Crypto
+FLOW-USD,Flow,Cryptocurrency,Crypto
+XEC-USD,eCash,Cryptocurrency,Crypto
+KSM-USD,Kusama,Cryptocurrency,Crypto
+DASH-USD,Dash,Cryptocurrency,Crypto
+CELO-USD,Celo,Cryptocurrency,Crypto
+TWT-USD,Trust Wallet Token,Cryptocurrency,Crypto
+LRC-USD,Loopring,Cryptocurrency,Crypto
+RVN-USD,Ravencoin,Cryptocurrency,Crypto
+AMP-USD,AMP,Cryptocurrency,Crypto
+REQ-USD,Request,Cryptocurrency,Crypto
+STMX-USD,StormX,Cryptocurrency,Crypto
+SC-USD,Siacoin,Cryptocurrency,Crypto
+ZEN-USD,Horizen,Cryptocurrency,Crypto
+SRM-USD,Serum,Cryptocurrency,Crypto
+AR-USD,Arweave,Cryptocurrency,Crypto
+KNC-USD,Kyber Network,Cryptocurrency,Crypto
+BZRX-USD,bZx Protocol,Cryptocurrency,Crypto
+ALPHA-USD,Alpha Finance Lab,Cryptocurrency,Crypto
+PERP-USD,Perpetual Protocol,Cryptocurrency,Crypto
+GNO-USD,Gnosis,Cryptocurrency,Crypto
+CVC-USD,Civic,Cryptocurrency,Crypto
+FET-USD,Fetch.ai,Cryptocurrency,Crypto
+EURUSD=X,Euro/US Dollar,Forex,Currency Pair
+GBPUSD=X,British Pound/US Dollar,Forex,Currency Pair
+USDJPY=X,US Dollar/Japanese Yen,Forex,Currency Pair
+AUDUSD=X,Australian Dollar/US Dollar,Forex,Currency Pair
+USDCAD=X,US Dollar/Canadian Dollar,Forex,Currency Pair
+NZDUSD=X,New Zealand Dollar/US Dollar,Forex,Currency Pair
+USDCHF=X,US Dollar/Swiss Franc,Forex,Currency Pair
+EURGBP=X,Euro/British Pound,Forex,Currency Pair
+EURJPY=X,Euro/Japanese Yen,Forex,Currency Pair
+EURCHF=X,Euro/Swiss Franc,Forex,Currency Pair
+EURCAD=X,Euro/Canadian Dollar,Forex,Currency Pair
+EURAUD=X,Euro/Australian Dollar,Forex,Currency Pair
+EURNZD=X,Euro/New Zealand Dollar,Forex,Currency Pair
+GBPJPY=X,British Pound/Japanese Yen,Forex,Currency Pair
+GBPCHF=X,British Pound/Swiss Franc,Forex,Currency Pair
+GBPAUD=X,British Pound/Australian Dollar,Forex,Currency Pair
+GBPCAD=X,British Pound/Canadian Dollar,Forex,Currency Pair
+GBPNZD=X,British Pound/New Zealand Dollar,Forex,Currency Pair
+AUDJPY=X,Australian Dollar/Japanese Yen,Forex,Currency Pair
+AUDNZD=X,Australian Dollar/New Zealand Dollar,Forex,Currency Pair
+AUDCHF=X,Australian Dollar/Swiss Franc,Forex,Currency Pair
+AUDCAD=X,Australian Dollar/Canadian Dollar,Forex,Currency Pair
+CADJPY=X,Canadian Dollar/Japanese Yen,Forex,Currency Pair
+CADCHF=X,Canadian Dollar/Swiss Franc,Forex,Currency Pair
+NZDJPY=X,New Zealand Dollar/Japanese Yen,Forex,Currency Pair
+NZDCHF=X,New Zealand Dollar/Swiss Franc,Forex,Currency Pair
+USDHKD=X,US Dollar/Hong Kong Dollar,Forex,Currency Pair
+USDSGD=X,US Dollar/Singapore Dollar,Forex,Currency Pair
+USDZAR=X,US Dollar/South African Rand,Forex,Currency Pair
+USDSEK=X,US Dollar/Swedish Krona,Forex,Currency Pair
+USDNOK=X,US Dollar/Norwegian Krone,Forex,Currency Pair
+USDTRY=X,US Dollar/Turkish Lira,Forex,Currency Pair
+USDMXN=X,US Dollar/Mexican Peso,Forex,Currency Pair
+USDINR=X,US Dollar/Indian Rupee,Forex,Currency Pair
+USDCNY=X,US Dollar/Chinese Yuan,Forex,Currency Pair
+USDTHB=X,US Dollar/Thai Baht,Forex,Currency Pair
+EURHKD=X,Euro/Hong Kong Dollar,Forex,Currency Pair
+EURSGD=X,Euro/Singapore Dollar,Forex,Currency Pair
+EURZAR=X,Euro/South African Rand,Forex,Currency Pair
+EURSEK=X,Euro/Swedish Krona,Forex,Currency Pair
+EURNOK=X,Euro/Norwegian Krone,Forex,Currency Pair
+EURTRY=X,Euro/Turkish Lira,Forex,Currency Pair
+EURMXN=X,Euro/Mexican Peso,Forex,Currency Pair
+EURINR=X,Euro/Indian Rupee,Forex,Currency Pair
+EURCNY=X,Euro/Chinese Yuan,Forex,Currency Pair
+EURTHB=X,Euro/Thai Baht,Forex,Currency Pair
+GBPHKD=X,British Pound/Hong Kong Dollar,Forex,Currency Pair
+GBPSGD=X,British Pound/Singapore Dollar,Forex,Currency Pair
+GBPZAR=X,British Pound/South African Rand,Forex,Currency Pair
+GBPSEK=X,British Pound/Swedish Krona,Forex,Currency Pair
+GBPNOK=X,British Pound/Norwegian Krone,Forex,Currency Pair
+GBPTRY=X,British Pound/Turkish Lira,Forex,Currency Pair
+GBPMXN=X,British Pound/Mexican Peso,Forex,Currency Pair
+GBPINR=X,British Pound/Indian Rupee,Forex,Currency Pair
+GBPCNY=X,British Pound/Chinese Yuan,Forex,Currency Pair
+GBPTHB=X,British Pound/Thai Baht,Forex,Currency Pair
+GC=F,Gold Futures,Commodities,Commodity
+SI=F,Silver Futures,Commodities,Commodity
+CL=F,Crude Oil Futures,Commodities,Commodity
+HO=F,Heating Oil Futures,Commodities,Commodity
+NG=F,Natural Gas Futures,Commodities,Commodity
+ZC=F,Corn Futures,Commodities,Commodity
+ZS=F,Soybean Futures,Commodities,Commodity
+ZW=F,Wheat Futures,Commodities,Commodity
+KC=F,Coffee Futures,Commodities,Commodity
+CT=F,Cotton Futures,Commodities,Commodity
+SB=F,Sugar Futures,Commodities,Commodity
+OJ=F,Orange Juice Futures,Commodities,Commodity
+LE=F,Live Cattle Futures,Commodities,Commodity
+HE=F,Lean Hogs Futures,Commodities,Commodity
+PL=F,Platinum Futures,Commodities,Commodity
+HG=F,Copper Futures,Commodities,Commodity
+RB=F,RBOB Gasoline Futures,Commodities,Commodity
+CC=F,Cocoa Futures,Commodities,Commodity
+LBS=F,Lumber Futures,Commodities,Commodity
+PA=F,Palladium Futures,Commodities,Commodity
+ZR=F,Rice Futures,Commodities,Commodity
+ZO=F,Oats Futures,Commodities,Commodity
+DX=F,US Dollar Index Futures,Commodities,Commodity
+GCQ=F,Mini Gold Futures,Commodities,Commodity
+MGC=F,Micro Gold Futures,Commodities,Commodity
+QG=F,Mini Natural Gas Futures,Commodities,Commodity
+ZL=F,Soybean Oil Futures,Commodities,Commodity
+ZM=F,Soybean Meal Futures,Commodities,Commodity
+KE=F,Kansas City Wheat Futures,Commodities,Commodity
+SM=F,Mini Soybean Futures,Commodities,Commodity
+BO=F,Mini Soybean Oil Futures,Commodities,Commodity
+MG=F,Mini Grain Futures,Commodities,Commodity
+
+

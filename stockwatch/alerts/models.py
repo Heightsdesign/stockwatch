@@ -7,6 +7,8 @@ from django.db.models import JSONField
 class Stock(models.Model):
     symbol = models.CharField(max_length=10, unique=True)
     name = models.CharField(max_length=100)
+    sector = models.CharField(max_length=50, blank=True, null=True)
+    asset_type = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
         return self.symbol
