@@ -16,13 +16,71 @@ from .models import Alert, IndicatorChainAlert, IndicatorCondition, Indicator
 
 def send_alert_notification(alert, current_value):
     user = alert.user
-    subject = f"Stock Alert Triggered for {alert.stock.symbol}"
-    message = (
-        f"Hello {user.username},\n\n"
-        f"Your alert for {alert.stock.symbol} has been triggered.\n"
-        f"Current Value: {current_value}\n\n"
-        "Best regards,\nStock Watch Team"
-    )
+    stock = alert.stock
+    subject = f"Stock Alert Triggered for {stock.symbol}"
+
+    if alert.alert_type == "PRICE":
+        # Price Target Alert
+        message = (
+            f"Hello {user.username},\n\n"
+            f"Your alert for {stock.symbol} has been triggered.\n"
+            f"Current Value: {current_value}\n\n"
+            "Best regards,\nStockWatch Team"
+        )
+
+    elif alert.alert_type == "PERCENT_CHANGE":
+        # Percentage Change Alert
+        percentage_change_alert = alert.percentage_change_alert
+        message = (
+            f"Hello {user.username},\n\n"
+            f"Your alert for {stock.symbol} has been triggered.\n\n"
+            f"Details:\n"
+            f"- Percentage Change: {percentage_change_alert.percentage_change}%\n"
+            f"- Direction: {'Up' if percentage_change_alert.direction == 'UP' else 'Down'}\n"
+            f"- Lookback Period: {percentage_change_alert.lookback_period}\n\n"
+            f"Current Value: {current_value}\n\n"
+            "Best regards,\nStockWatch Team"
+        )
+
+    elif alert.alert_type == "INDICATOR_CHAIN":
+        # Indicator Chain Alert
+        conditions = alert.indicator_chain_alert.conditions.all()
+        condition_results = []
+
+        for condition in conditions:
+            result = (
+                f"- Indicator: {condition.indicator.name}\n"
+                f"  Line: {condition.indicator_line.display_name}\n"
+                f"  Timeframe: {condition.indicator_timeframe}\n"
+                f"  Operator: {condition.condition_operator}\n"
+                f"  Value: {condition.value_type} "
+            )
+            if condition.value_type == "NUMBER":
+                result += f"{condition.value_number}\n"
+            elif condition.value_type == "INDICATOR_LINE":
+                result += (
+                    f"{condition.value_indicator.name} "
+                    f"(Line: {condition.value_indicator_line.display_name}, "
+                    f"Timeframe: {condition.value_timeframe})\n"
+                )
+            condition_results.append(result)
+
+        conditions_summary = "\n".join(condition_results)
+        message = (
+            f"Hello {user.username},\n\n"
+            f"Your alert for {stock.symbol} has been triggered.\n"
+            f"The following indicator chain conditions were met:\n\n"
+            f"{conditions_summary}\n"
+            "Best regards,\nStockWatch Team"
+        )
+    else:
+        # Default fallback for unknown alert types
+        message = (
+            f"Hello {user.username},\n\n"
+            f"Your alert for {stock.symbol} has been triggered.\n"
+            f"Current Value: {current_value}\n\n"
+            "Best regards,\nStockWatch Team"
+        )
 
     # Email Notification
     if user.receive_email_notifications and user.email:
@@ -183,6 +241,7 @@ def resample_data(df, timeframe):
         return resampled_data
     else:
         raise ValueError(f"Unknown timeframe: {timeframe}")
+
 
 def get_valid_period(required_days):
     """

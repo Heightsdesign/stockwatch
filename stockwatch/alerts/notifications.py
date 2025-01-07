@@ -3,8 +3,6 @@ from phonenumber_field.phonenumber import to_python
 from twilio.rest import Client
 from django.conf import settings
 from django.core.mail import send_mail
-
-import firebase_admin
 from firebase_admin import messaging
 
 from users.models import UserDevice
