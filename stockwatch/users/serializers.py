@@ -98,6 +98,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'receive_email_notifications',
             'receive_sms_notifications',
             'receive_push_notifications',
+            "is_phone_verified",
         ]
 
     def validate(self, data):

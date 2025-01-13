@@ -1,0 +1,12 @@
+{% extends "emails/base_email.html" %}
+
+{% block subject %}Verify Your Email{% endblock %}
+
+{% block title %}Verify Your Email Address{% endblock %}
+
+{% block content %}
+  <p>Hello {{ user.username }},</p>
+  <p>Thank you for signing up for StockWatch. Please verify your email address by clicking the link below:</p>
+  <p><a href="{{ verification_url }}" style="color: #0078d7;">Verify Email</a></p>
+  <p>If you did not sign up for this account, please ignore this email.</p>
+{% endblock %}

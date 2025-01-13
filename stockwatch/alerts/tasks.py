@@ -3,113 +3,128 @@
 from celery import shared_task
 from django.utils import timezone
 from .utils import get_stock_data, calculate_indicator
-from django.core.mail import send_mail
-from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from .notifications import send_sms_notification, send_push_notification
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from datetime import datetime
+
 import pandas as pd
 import math
 
-
 from .models import Alert, IndicatorChainAlert, IndicatorCondition, Indicator
+from .notifications import send_sms_notification, send_push_notification
 
 
 def send_alert_notification(alert, current_value):
     user = alert.user
     stock = alert.stock
-    subject = f"Stock Alert Triggered for {stock.symbol}"
 
+    # Base email context
+    email_context = {
+        "user": user,
+        "stock": stock,
+        "year": datetime.now().year,
+    }
+
+    # Decide subject & HTML template content
     if alert.alert_type == "PRICE":
-        # Price Target Alert
-        message = (
-            f"Hello {user.username},\n\n"
-            f"Your alert for {stock.symbol} has been triggered.\n"
-            f"Current Value: {current_value}\n\n"
-            "Best regards,\nStockWatch Team"
-        )
+        email_context.update({
+            "current_value": current_value,
+            "alert_type": "PRICE",
+        })
+        subject = f"Stock Alert Triggered for {stock.symbol}"
+        html_content = render_to_string("emails/alert_notification.html", email_context)
 
     elif alert.alert_type == "PERCENT_CHANGE":
-        # Percentage Change Alert
         percentage_change_alert = alert.percentage_change_alert
-        message = (
-            f"Hello {user.username},\n\n"
-            f"Your alert for {stock.symbol} has been triggered.\n\n"
-            f"Details:\n"
-            f"- Percentage Change: {percentage_change_alert.percentage_change}%\n"
-            f"- Direction: {'Up' if percentage_change_alert.direction == 'UP' else 'Down'}\n"
-            f"- Lookback Period: {percentage_change_alert.lookback_period}\n\n"
-            f"Current Value: {current_value}\n\n"
-            "Best regards,\nStockWatch Team"
-        )
+        email_context.update({
+            "percentage_change": percentage_change_alert.percentage_change,
+            "direction": "Up" if percentage_change_alert.direction == "UP" else "Down",
+            "lookback_period": percentage_change_alert.lookback_period,
+            "current_value": current_value,
+            "alert_type": "PERCENT_CHANGE",
+        })
+        subject = f"Stock Alert: Percentage Change for {stock.symbol}"
+        html_content = render_to_string("emails/alert_notification.html", email_context)
 
     elif alert.alert_type == "INDICATOR_CHAIN":
-        # Indicator Chain Alert
         conditions = alert.indicator_chain_alert.conditions.all()
         condition_results = []
 
         for condition in conditions:
-            result = (
-                f"- Indicator: {condition.indicator.name}\n"
-                f"  Line: {condition.indicator_line.display_name}\n"
-                f"  Timeframe: {condition.indicator_timeframe}\n"
-                f"  Operator: {condition.condition_operator}\n"
-                f"  Value: {condition.value_type} "
-            )
+            result = {
+                "indicator": condition.indicator.name,
+                "line": condition.indicator_line.display_name,
+                "timeframe": condition.indicator_timeframe,
+                "operator": condition.condition_operator,
+                "value_type": condition.value_type,
+            }
             if condition.value_type == "NUMBER":
-                result += f"{condition.value_number}\n"
+                result["value"] = condition.value_number
             elif condition.value_type == "INDICATOR_LINE":
-                result += (
-                    f"{condition.value_indicator.name} "
-                    f"(Line: {condition.value_indicator_line.display_name}, "
-                    f"Timeframe: {condition.value_timeframe})\n"
-                )
+                result["value"] = {
+                    "indicator": condition.value_indicator.name,
+                    "line": condition.value_indicator_line.display_name,
+                    "timeframe": condition.value_timeframe,
+                }
             condition_results.append(result)
 
-        conditions_summary = "\n".join(condition_results)
-        message = (
-            f"Hello {user.username},\n\n"
-            f"Your alert for {stock.symbol} has been triggered.\n"
-            f"The following indicator chain conditions were met:\n\n"
-            f"{conditions_summary}\n"
-            "Best regards,\nStockWatch Team"
-        )
-    else:
-        # Default fallback for unknown alert types
-        message = (
-            f"Hello {user.username},\n\n"
-            f"Your alert for {stock.symbol} has been triggered.\n"
-            f"Current Value: {current_value}\n\n"
-            "Best regards,\nStockWatch Team"
-        )
+        email_context.update({
+            "conditions": condition_results,
+            "alert_type": "INDICATOR_CHAIN",
+        })
+        subject = f"Stock Alert: Indicator Chain Triggered for {stock.symbol}"
+        html_content = render_to_string("emails/alert_notification.html", email_context)
 
-    # Email Notification
+    else:
+        # Default fallback
+        email_context.update({
+            "current_value": current_value,
+            "alert_type": "DEFAULT",
+        })
+        subject = f"Stock Alert Triggered for {stock.symbol}"
+        html_content = render_to_string("emails/alert_notification.html", email_context)
+
+    # Create plain-text fallback
+    text_content = strip_tags(html_content)
+
+    # ============ EMAIL NOTIFICATION ============ #
     if user.receive_email_notifications and user.email:
-        from_email = settings.DEFAULT_FROM_EMAIL
+        # Use EmailMultiAlternatives to send multi-part email (text + HTML)
+        email = EmailMultiAlternatives(
+            subject=subject,
+            body=text_content,  # plain-text fallback
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[user.email],
+        )
+        # Attach HTML part
+        email.attach_alternative(html_content, "text/html")
         try:
-            send_mail(subject, message, from_email, [user.email])
+            email.send()
             print(f"Email sent to {user.email}.")
         except Exception as e:
             print(f"Error sending email to {user.email}: {e}")
 
-    # SMS Notification (if implemented)
+    # ============ SMS NOTIFICATION ============ #
     if user.receive_sms_notifications and user.phone_number:
         try:
-            send_sms_notification(user, message)
+            # We'll reuse the text_content so the SMS won't contain HTML
+            send_sms_notification(user, text_content)
             print(f"SMS sent to {user.phone_number}.")
         except Exception as e:
             print(f"Error sending SMS to {user.phone_number}: {e}")
 
-    # Push Notification (Newly added)
-    # Check if user wants to receive push notifications
-    if getattr(user, 'receive_push_notifications', False):
-        title = f"Alert Triggered for {alert.stock.symbol}"
+    # ============ PUSH NOTIFICATION ============ #
+    if getattr(user, "receive_push_notifications", False):
+        title = f"Alert Triggered for {stock.symbol}"
         body = f"Current Value: {current_value}"
         try:
             send_push_notification(user, title, body)
             print(f"Push notification sent to {user.username}.")
         except Exception as e:
             print(f"Error sending push notification to {user.username}: {e}")
-
 
 @shared_task
 def process_alerts():

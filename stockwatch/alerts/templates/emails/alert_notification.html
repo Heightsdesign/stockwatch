@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+    .header {
+      background: #0078d7;
+      color: #ffffff;
+      padding: 20px;
+      text-align: center;
+    }
+    .content {
+      padding: 20px;
+      color: #333333;
+    }
+    .footer {
+      background: #f1f1f1;
+      text-align: center;
+      padding: 10px;
+      font-size: 12px;
+      color: #888888;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Stock Alert Notification</h1>
+    </div>
+    <div class="content">
+      <p>Hello {{ user.username }},</p>
+
+      <p>
+        Your alert for <strong>{{ stock.symbol }}</strong> has been triggered.
+      </p>
+
+      <p>Details:</p>
+
+      {# 1) PRICE ALERT #}
+      {% if alert_type == "PRICE" %}
+        <p>
+          Price target alert triggered.<br />
+          <strong>Current Value:</strong> {{ current_value }}
+        </p>
+
+      {# 2) PERCENT CHANGE ALERT #}
+      {% elif alert_type == "PERCENT_CHANGE" %}
+        <ul>
+          <li><strong>Percentage Change:</strong> {{ percentage_change }}%</li>
+          <li><strong>Direction:</strong> {{ direction }}</li>
+          <li><strong>Lookback Period:</strong> {{ lookback_period }}</li>
+          <li><strong>Current Value:</strong> {{ current_value }}</li>
+        </ul>
+
+      {# 3) INDICATOR CHAIN ALERT #}
+      {% elif alert_type == "INDICATOR_CHAIN" %}
+        <p>Indicator chain conditions matched:</p>
+        <ul>
+          {% for cond in conditions %}
+            <li>
+              Indicator: {{ cond.indicator }} (Line: {{ cond.line }},
+              Timeframe: {{ cond.timeframe }})<br />
+              Operator: {{ cond.operator }}<br />
+              Value:
+              {% if cond.value_type == "NUMBER" %}
+                {{ cond.value }}
+              {% elif cond.value_type == "INDICATOR_LINE" %}
+                Indicator: {{ cond.value.indicator }}<br />
+                Line: {{ cond.value.line }}<br />
+                Timeframe: {{ cond.value.timeframe }}
+              {% else %}
+                (Unknown Value)
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+
+      {# 4) DEFAULT #}
+      {% else %}
+        <p>
+          Default fallback alert.<br />
+          <strong>Current Value:</strong> {{ current_value }}
+        </p>
+      {% endif %}
+
+      <p>Thank you for using StockWatch!</p>
+    </div>
+    <div class="footer">
+      <p>StockWatch &copy; {{ year }}</p>
+      <p>You received this email because you subscribed to notifications.</p>
+    </div>
+  </div>
+</body>
+</html>

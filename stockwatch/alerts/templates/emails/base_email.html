@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>{% block subject %}Email from StockWatch{% endblock %}</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f9f9f9;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 600px;
+        margin: 20px auto;
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+      .header {
+        background: #0078d7;
+        color: #ffffff;
+        padding: 20px;
+        text-align: center;
+      }
+      .content {
+        padding: 20px;
+        color: #333333;
+      }
+      .footer {
+        background: #f1f1f1;
+        text-align: center;
+        padding: 10px;
+        font-size: 12px;
+        color: #888888;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>{% block title %}StockWatch{% endblock %}</h1>
+      </div>
+      <div class="content">
+        {% block content %}Email content goes here.{% endblock %}
+      </div>
+      <div class="footer">
+        <p>StockWatch &copy; {{ year }}</p>
+        <p>You received this email because you subscribed to notifications.</p>
+      </div>
+    </div>
+  </body>
+</html>
