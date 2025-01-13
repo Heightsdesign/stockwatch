@@ -1,5 +1,5 @@
 # alerts/tasks.py
-
+import re
 from celery import shared_task
 from django.utils import timezone
 from .utils import get_stock_data, calculate_indicator
@@ -16,43 +16,40 @@ import math
 from .models import Alert, IndicatorChainAlert, IndicatorCondition, Indicator
 from .notifications import send_sms_notification, send_push_notification
 
+import re
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.conf import settings
+from datetime import datetime
 
 def send_alert_notification(alert, current_value):
     user = alert.user
     stock = alert.stock
 
-    # Base email context
+    # ============ (A) Build Email HTML Content ============ #
     email_context = {
         "user": user,
         "stock": stock,
         "year": datetime.now().year,
     }
 
-    # Decide subject & HTML template content
+    # Decide the email subject & fill the email_context accordingly
     if alert.alert_type == "PRICE":
-        email_context.update({
-            "current_value": current_value,
-            "alert_type": "PRICE",
-        })
+        email_context["alert_type"] = "PRICE"
+        email_context["current_value"] = current_value
         subject = f"Stock Alert Triggered for {stock.symbol}"
-        html_content = render_to_string("emails/alert_notification.html", email_context)
-
     elif alert.alert_type == "PERCENT_CHANGE":
         percentage_change_alert = alert.percentage_change_alert
-        email_context.update({
-            "percentage_change": percentage_change_alert.percentage_change,
-            "direction": "Up" if percentage_change_alert.direction == "UP" else "Down",
-            "lookback_period": percentage_change_alert.lookback_period,
-            "current_value": current_value,
-            "alert_type": "PERCENT_CHANGE",
-        })
+        email_context["alert_type"] = "PERCENT_CHANGE"
+        email_context["percentage_change"] = percentage_change_alert.percentage_change
+        email_context["direction"] = "Up" if percentage_change_alert.direction == "UP" else "Down"
+        email_context["lookback_period"] = percentage_change_alert.lookback_period
+        email_context["current_value"] = current_value
         subject = f"Stock Alert: Percentage Change for {stock.symbol}"
-        html_content = render_to_string("emails/alert_notification.html", email_context)
-
     elif alert.alert_type == "INDICATOR_CHAIN":
         conditions = alert.indicator_chain_alert.conditions.all()
         condition_results = []
-
         for condition in conditions:
             result = {
                 "indicator": condition.indicator.name,
@@ -70,36 +67,33 @@ def send_alert_notification(alert, current_value):
                     "timeframe": condition.value_timeframe,
                 }
             condition_results.append(result)
-
-        email_context.update({
-            "conditions": condition_results,
-            "alert_type": "INDICATOR_CHAIN",
-        })
+        email_context["alert_type"] = "INDICATOR_CHAIN"
+        email_context["conditions"] = condition_results
         subject = f"Stock Alert: Indicator Chain Triggered for {stock.symbol}"
-        html_content = render_to_string("emails/alert_notification.html", email_context)
-
     else:
-        # Default fallback
-        email_context.update({
-            "current_value": current_value,
-            "alert_type": "DEFAULT",
-        })
+        email_context["alert_type"] = "DEFAULT"
+        email_context["current_value"] = current_value
         subject = f"Stock Alert Triggered for {stock.symbol}"
-        html_content = render_to_string("emails/alert_notification.html", email_context)
 
-    # Create plain-text fallback
-    text_content = strip_tags(html_content)
+    # Render the HTML email
+    html_content = render_to_string("emails/alert_notification.html", email_context)
 
-    # ============ EMAIL NOTIFICATION ============ #
+    # ============ (B) Build a Dedicated SMS Text ============ #
+    sms_content = build_sms_content(alert, current_value)
+
+    # ============ (C) Send Email (Multi-part) ============ #
     if user.receive_email_notifications and user.email:
-        # Use EmailMultiAlternatives to send multi-part email (text + HTML)
+        # Plain-text fallback for email
+        #   (We remove <style> blocks if any, then strip tags)
+        style_removed = re.sub(r"<style[^>]*>.*?</style>", "", html_content, flags=re.DOTALL)
+        text_fallback = strip_tags(style_removed)
+
         email = EmailMultiAlternatives(
             subject=subject,
-            body=text_content,  # plain-text fallback
+            body=text_fallback,
             from_email=settings.DEFAULT_FROM_EMAIL,
             to=[user.email],
         )
-        # Attach HTML part
         email.attach_alternative(html_content, "text/html")
         try:
             email.send()
@@ -107,24 +101,59 @@ def send_alert_notification(alert, current_value):
         except Exception as e:
             print(f"Error sending email to {user.email}: {e}")
 
-    # ============ SMS NOTIFICATION ============ #
+    # ============ (D) Send SMS ============ #
     if user.receive_sms_notifications and user.phone_number:
         try:
-            # We'll reuse the text_content so the SMS won't contain HTML
-            send_sms_notification(user, text_content)
+            send_sms_notification(user, sms_content)
             print(f"SMS sent to {user.phone_number}.")
         except Exception as e:
             print(f"Error sending SMS to {user.phone_number}: {e}")
 
-    # ============ PUSH NOTIFICATION ============ #
+    # ============ (E) Push Notification ============ #
     if getattr(user, "receive_push_notifications", False):
         title = f"Alert Triggered for {stock.symbol}"
-        body = f"Current Value: {current_value}"
+        # Could reuse sms_content or build something slightly different
+        push_body = sms_content
         try:
-            send_push_notification(user, title, body)
+            send_push_notification(user, title, push_body)
             print(f"Push notification sent to {user.username}.")
         except Exception as e:
             print(f"Error sending push notification to {user.username}: {e}")
+
+
+def build_sms_content(alert, current_value):
+    """
+    Returns a short, plain-text message ideal for SMS (or push).
+    """
+    stock = alert.stock
+
+    if alert.alert_type == "PRICE":
+        return (
+            f"Stock Alert for {stock.symbol}\n"
+            f"PRICE alert triggered.\n"
+            f"Current Value: {current_value}"
+        )
+    elif alert.alert_type == "PERCENT_CHANGE":
+        pct = alert.percentage_change_alert.percentage_change
+        direction = "Up" if alert.percentage_change_alert.direction == "UP" else "Down"
+        lookback = alert.percentage_change_alert.lookback_period
+        return (
+            f"Stock Alert for {stock.symbol}\n"
+            f"{pct}% {direction} over {lookback}.\n"
+            f"Current Value: {current_value}"
+        )
+    elif alert.alert_type == "INDICATOR_CHAIN":
+        return (
+            f"Stock Alert for {stock.symbol}\n"
+            f"Indicator chain conditions met.\n"
+            f"Check your email for details."
+        )
+    else:
+        return (
+            f"Stock Alert for {stock.symbol}\n"
+            f"Default fallback.\n"
+            f"Current Value: {current_value}"
+        )
 
 @shared_task
 def process_alerts():

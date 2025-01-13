@@ -1,8 +1,10 @@
 {% extends "emails/base_email.html" %}
 
-{% block subject %}Verify Your Email{% endblock %}
+{% block title %}Verify Your Email{% endblock %}
 
-{% block title %}Verify Your Email Address{% endblock %}
+{% block email_header %}
+<h1>Verify Your Email Address</h1>
+{% endblock %}
 
 {% block content %}
   <p>Hello {{ user.username }},</p>
