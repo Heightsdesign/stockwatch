@@ -95,29 +95,20 @@
       <ion-item>
         <ion-label>Lookback Period</ion-label>
         <ion-select formControlName="lookback_period">
-          <ion-select-option value="5Min">5 Min</ion-select-option>
-          <ion-select-option value="15Min">15 Min</ion-select-option>
-          <ion-select-option value="30Min">30 Min</ion-select-option>
-          <ion-select-option value="60Min">1H</ion-select-option>
+          <ion-select-option value="5MIN">5 Min</ion-select-option>
+          <ion-select-option value="15MIN">15 Min</ion-select-option>
+          <ion-select-option value="30MIN">30 Min</ion-select-option>
+          <ion-select-option value="60MIN">1H</ion-select-option>
           <ion-select-option value="1D">1D</ion-select-option>
           <ion-select-option value="1W">1W</ion-select-option>
-          <ion-select-option value="1M">1Mo</ion-select-option>
-          <ion-select-option value="3M">3Mo</ion-select-option>
+          <ion-select-option value="1M">1MO</ion-select-option>
+          <ion-select-option value="3M">3MO</ion-select-option>
           <!-- <ion-select-option value="CUSTOM">Custom</ion-select-option> -->
         </ion-select>
       </ion-item>
       <!-- Inline error for lookback_period -->
       <ion-note color="danger" *ngIf="alertForm.get('lookback_period')?.errors?.['customError']">
         {{ alertForm.get('lookback_period')?.errors?.['customError'] }}
-      </ion-note>
-
-      <!-- Custom lookback days (if used) -->
-      <ion-item *ngIf="alertForm.get('lookback_period')?.value === 'CUSTOM'">
-        <ion-label position="stacked">Custom Lookback Days</ion-label>
-        <ion-input formControlName="custom_lookback_days" type="number" min="1"></ion-input>
-      </ion-item>
-      <ion-note color="danger" *ngIf="alertForm.get('custom_lookback_days')?.errors?.['customError']">
-        {{ alertForm.get('custom_lookback_days')?.errors?.['customError'] }}
       </ion-note>
     </ng-container>
 

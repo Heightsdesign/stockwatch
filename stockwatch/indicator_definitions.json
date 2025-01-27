@@ -1,79 +1,1252 @@
 [
-    {
-        "name": "moving_average",
-        "display_name": "Moving Average",
-        "description": "A simple moving average calculates the average of a selected range of prices.",
-        "parameters": [
-            {
-                "name": "length",
-                "display_name": "Length",
-                "param_type": "int",
-                "required": true,
-                "default_value": 14
-            }
-        ],
-        "lines": [
-            {"name": "ma", "display_name": "MA"}
-        ]
-    },
-    {
-        "name": "bollinger_bands",
-        "display_name": "Bollinger Bands",
-        "description": "Bollinger Bands are a type of statistical chart characterizing the prices and volatility over time.",
-        "parameters": [
-            {
-                "name": "length",
-                "display_name": "Length",
-                "param_type": "int",
-                "required": true,
-                "default_value": 20
-            },
-            {
-                "name": "stddev",
-                "display_name": "Standard Deviation",
-                "param_type": "float",
-                "required": true,
-                "default_value": 2.0
-            }
-        ],
-        "lines": [
-            {"name": "upper_band", "display_name": "Upper Band"},
-            {"name": "middle_band", "display_name": "Middle Band"},
-            {"name": "lower_band", "display_name": "Lower Band"}
-        ]
-    },
-    {
-        "name": "macd",
-        "display_name": "MACD",
-        "description": "MACD is a trend-following momentum indicator that shows the relationship between two moving averages.",
-        "parameters": [
-            {
-                "name": "fast_period",
-                "display_name": "Fast Period",
-                "param_type": "int",
-                "required": true,
-                "default_value": 12
-            },
-            {
-                "name": "slow_period",
-                "display_name": "Slow Period",
-                "param_type": "int",
-                "required": true,
-                "default_value": 26
-            },
-            {
-                "name": "signal_period",
-                "display_name": "Signal Period",
-                "param_type": "int",
-                "required": true,
-                "default_value": 9
-            }
-        ],
-         "lines": [
-            {"name": "macd_line", "display_name": "MACD Line"},
-            {"name": "signal_line", "display_name": "Signal Line"},
-            {"name": "histogram", "display_name": "Histogram"}
-        ]
-    }
+  {
+    "name": "moving_average",
+    "display_name": "Moving Average",
+    "description": "A simple moving average calculates the average of a selected range of prices.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 14
+      }
+    ],
+    "lines": [
+      { "name": "ma", "display_name": "MA" }
+    ]
+  },
+  {
+    "name": "bollinger_bands",
+    "display_name": "Bollinger Bands",
+    "description": "Bollinger Bands measure volatility by plotting a band of two standard deviations around a moving average.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 20
+      },
+      {
+        "name": "stddev",
+        "display_name": "Standard Deviation",
+        "param_type": "float",
+        "required": true,
+        "default_value": 2.0
+      }
+    ],
+    "lines": [
+      { "name": "upper_band", "display_name": "Upper Band" },
+      { "name": "middle_band", "display_name": "Middle Band" },
+      { "name": "lower_band", "display_name": "Lower Band" }
+    ]
+  },
+  {
+    "name": "macd",
+    "display_name": "MACD",
+    "description": "MACD is a trend-following momentum indicator that shows the relationship between two EMAs of price.",
+    "parameters": [
+      {
+        "name": "fast_period",
+        "display_name": "Fast Period",
+        "param_type": "int",
+        "required": true,
+        "default_value": 12
+      },
+      {
+        "name": "slow_period",
+        "display_name": "Slow Period",
+        "param_type": "int",
+        "required": true,
+        "default_value": 26
+      },
+      {
+        "name": "signal_period",
+        "display_name": "Signal Period",
+        "param_type": "int",
+        "required": true,
+        "default_value": 9
+      }
+    ],
+    "lines": [
+      { "name": "macd_line", "display_name": "MACD Line" },
+      { "name": "signal_line", "display_name": "Signal Line" },
+      { "name": "histogram", "display_name": "Histogram" }
+    ]
+  },
 
+  {
+    "name": "rsi",
+    "display_name": "RSI",
+    "description": "RSI measures the magnitude of recent price changes to evaluate overbought or oversold conditions.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 14
+      }
+    ],
+    "lines": [
+      { "name": "rsi_line", "display_name": "RSI Value" }
+    ]
+  },
+
+
+  {
+    "name": "ema",
+    "display_name": "EMA",
+    "description": "Exponential Moving Average applies more weight to recent data.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 14
+      }
+    ],
+    "lines": [
+      { "name": "ema_line", "display_name": "EMA" }
+    ]
+  },
+
+
+  {
+    "name": "wma",
+    "display_name": "WMA",
+    "description": "Weighted Moving Average uses weights that decrease linearly with each data point in the lookback window.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 14
+      }
+    ],
+    "lines": [
+      { "name": "wma_line", "display_name": "WMA" }
+    ]
+  },
+
+  {
+    "name": "adx",
+    "display_name": "ADX",
+    "description": "ADX measures the strength of a trend by using DMI (Directional Movement Index).",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 14
+      }
+    ],
+    "lines": [
+      { "name": "adx_line", "display_name": "ADX" }
+    ]
+  },
+
+  {
+    "name": "atr",
+    "display_name": "ATR",
+    "description": "Average True Range measures market volatility by decomposing the entire range of an asset price.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 14
+      }
+    ],
+    "lines": [
+      { "name": "atr_line", "display_name": "ATR" }
+    ]
+  },
+
+  {
+    "name": "cci",
+    "display_name": "CCI",
+    "description": "Commodity Channel Index measures the current price level relative to an average price level over a period.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 20
+      }
+    ],
+    "lines": [
+      { "name": "cci_line", "display_name": "CCI" }
+    ]
+  },
+
+  {
+    "name": "tsi",
+    "display_name": "TSI",
+    "description": "True Strength Index is a momentum oscillator based on double smoothing of price changes.",
+    "parameters": [
+      {
+        "name": "long_length",
+        "display_name": "Long Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 25
+      },
+      {
+        "name": "short_length",
+        "display_name": "Short Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 13
+      }
+    ],
+    "lines": [
+      { "name": "tsi_line", "display_name": "TSI" }
+    ]
+  },
+
+  {
+    "name": "stoch",
+    "display_name": "Stochastic Oscillator",
+    "description": "Stochastic measures momentum by comparing the closing price to a range of its prices over a period.",
+    "parameters": [
+      {
+        "name": "k_length",
+        "display_name": "%K Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 14
+      },
+      {
+        "name": "d_length",
+        "display_name": "%D Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 3
+      }
+    ],
+    "lines": [
+      { "name": "k_line", "display_name": "%K" },
+      { "name": "d_line", "display_name": "%D" }
+    ]
+  },
+
+  {
+    "name": "obv",
+    "display_name": "OBV",
+    "description": "On-Balance Volume relates volume flow to price changes, highlighting accumulation vs. distribution.",
+    "parameters": [],
+    "lines": [
+      { "name": "obv_line", "display_name": "OBV" }
+    ]
+  },
+
+  {
+    "name": "mfi",
+    "display_name": "MFI",
+    "description": "Money Flow Index uses price and volume to measure buying and selling pressure.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 14
+      }
+    ],
+    "lines": [
+      { "name": "mfi_line", "display_name": "MFI" }
+    ]
+  },
+
+  {
+    "name": "ao",
+    "display_name": "AO",
+    "description": "Awesome Oscillator highlights market momentum by comparing two different moving averages.",
+    "parameters": [],
+    "lines": [
+      { "name": "ao_line", "display_name": "AO" }
+    ]
+  },
+
+  {
+    "name": "roc",
+    "display_name": "ROC",
+    "description": "Rate of Change measures the speed at which a variable changes over a specific period.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 12
+      }
+    ],
+    "lines": [
+      { "name": "roc_line", "display_name": "ROC" }
+    ]
+  },
+
+  {
+    "name": "cmo",
+    "display_name": "CMO",
+    "description": "Chande Momentum Oscillator is a modified RSI that accounts for both upside and downside price changes.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 14
+      }
+    ],
+    "lines": [
+      { "name": "cmo_line", "display_name": "CMO" }
+    ]
+  },
+
+  {
+    "name": "kama",
+    "display_name": "KAMA",
+    "description": "Kaufman’s Adaptive Moving Average adjusts its length based on market volatility.",
+    "parameters": [
+      {
+        "name": "fast",
+        "display_name": "Fast End",
+        "param_type": "int",
+        "required": true,
+        "default_value": 2
+      },
+      {
+        "name": "slow",
+        "display_name": "Slow End",
+        "param_type": "int",
+        "required": true,
+        "default_value": 30
+      }
+    ],
+    "lines": [
+      { "name": "kama_line", "display_name": "KAMA" }
+    ]
+  },
+
+  {
+    "name": "psar",
+    "display_name": "PSAR",
+    "description": "Parabolic SAR spots potential reversals in market price direction.",
+    "parameters": [
+      {
+        "name": "step",
+        "display_name": "Step",
+        "param_type": "float",
+        "required": true,
+        "default_value": 0.02
+      },
+      {
+        "name": "max_step",
+        "display_name": "Max Step",
+        "param_type": "float",
+        "required": true,
+        "default_value": 0.2
+      }
+    ],
+    "lines": [
+      { "name": "psar_line", "display_name": "PSAR" }
+    ]
+  },
+
+  {
+    "name": "supertrend",
+    "display_name": "SuperTrend",
+    "description": "SuperTrend uses ATR to detect trend direction, generating buy or sell signals.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "ATR Period",
+        "param_type": "int",
+        "required": true,
+        "default_value": 10
+      },
+      {
+        "name": "multiplier",
+        "display_name": "Multiplier",
+        "param_type": "float",
+        "required": true,
+        "default_value": 3.0
+      }
+    ],
+    "lines": [
+      { "name": "supertrend_line", "display_name": "SuperTrend" }
+    ]
+  },
+
+  {
+    "name": "uo",
+    "display_name": "Ultimate Oscillator",
+    "description": "Ultimate Oscillator uses three weighted timeframes to track price momentum.",
+    "parameters": [
+      {
+        "name": "fast",
+        "display_name": "Fast Period",
+        "param_type": "int",
+        "required": true,
+        "default_value": 7
+      },
+      {
+        "name": "medium",
+        "display_name": "Medium Period",
+        "param_type": "int",
+        "required": true,
+        "default_value": 14
+      },
+      {
+        "name": "slow",
+        "display_name": "Slow Period",
+        "param_type": "int",
+        "required": true,
+        "default_value": 28
+      }
+    ],
+    "lines": [
+      { "name": "uo_line", "display_name": "UO" }
+    ]
+  },
+
+  {
+    "name": "williams",
+    "display_name": "Williams %R",
+    "description": "Williams %R is a momentum indicator measuring overbought and oversold levels.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 14
+      }
+    ],
+    "lines": [
+      { "name": "williams_line", "display_name": "Williams %R" }
+    ]
+  },
+
+  {
+    "name": "aroon",
+    "display_name": "Aroon",
+    "description": "Aroon identifies trends by measuring the time since price recorded an x-day high/low.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 14
+      }
+    ],
+    "lines": [
+      { "name": "aroon_up", "display_name": "Aroon Up" },
+      { "name": "aroon_down", "display_name": "Aroon Down" }
+    ]
+  },
+
+  {
+    "name": "dema",
+    "display_name": "DEMA",
+    "description": "Double Exponential Moving Average offers less lag than a traditional EMA.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 14
+      }
+    ],
+    "lines": [
+      { "name": "dema_line", "display_name": "DEMA" }
+    ]
+  },
+
+  {
+    "name": "vwap",
+    "display_name": "VWAP",
+    "description": "Volume Weighted Average Price calculates the average price weighted by volume.",
+    "parameters": [],
+    "lines": [
+      { "name": "vwap_line", "display_name": "VWAP" }
+    ]
+  },
+
+  {
+    "name": "trix",
+    "display_name": "Trix",
+    "description": "Trix is a triple-smoothed EMA measuring % rate of change of a triple EMA.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 14
+      }
+    ],
+    "lines": [
+      { "name": "trix_line", "display_name": "Trix" }
+    ]
+  },
+
+  {
+    "name": "pvo",
+    "display_name": "PVO",
+    "description": "Percentage Volume Oscillator is MACD applied to volume instead of price.",
+    "parameters": [
+      {
+        "name": "fast",
+        "display_name": "Fast Period",
+        "param_type": "int",
+        "required": true,
+        "default_value": 12
+      },
+      {
+        "name": "slow",
+        "display_name": "Slow Period",
+        "param_type": "int",
+        "required": true,
+        "default_value": 26
+      },
+      {
+        "name": "signal",
+        "display_name": "Signal Period",
+        "param_type": "int",
+        "required": true,
+        "default_value": 9
+      }
+    ],
+    "lines": [
+      { "name": "pvo_line", "display_name": "PVO" },
+      { "name": "signal_line", "display_name": "Signal" },
+      { "name": "histogram", "display_name": "Histogram" }
+    ]
+  },
+
+  {
+    "name": "stc",
+    "display_name": "STC",
+    "description": "Schaff Trend Cycle identifies cycle trends in the MACD approach.",
+    "parameters": [
+      {
+        "name": "fast",
+        "display_name": "Fast Period",
+        "param_type": "int",
+        "required": true,
+        "default_value": 23
+      },
+      {
+        "name": "slow",
+        "display_name": "Slow Period",
+        "param_type": "int",
+        "required": true,
+        "default_value": 50
+      }
+    ],
+    "lines": [
+      { "name": "stc_line", "display_name": "STC" }
+    ]
+  },
+
+  {
+    "name": "kvo",
+    "display_name": "KVO",
+    "description": "Klinger Volume Oscillator tracks long-term trends of money flow based on volume.",
+    "parameters": [
+      {
+        "name": "fast",
+        "display_name": "Fast Period",
+        "param_type": "int",
+        "required": true,
+        "default_value": 34
+      },
+      {
+        "name": "slow",
+        "display_name": "Slow Period",
+        "param_type": "int",
+        "required": true,
+        "default_value": 55
+      }
+    ],
+    "lines": [
+      { "name": "kvo_line", "display_name": "KVO" },
+      { "name": "signal_line", "display_name": "Signal" }
+    ]
+  },
+
+  {
+    "name": "eom",
+    "display_name": "EOM",
+    "description": "Ease of Movement highlights the relationship between volume and price change.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": false,
+        "default_value": 14
+      }
+    ],
+    "lines": [
+      { "name": "eom_line", "display_name": "EOM" }
+    ]
+  },
+
+  {
+    "name": "alma",
+    "display_name": "ALMA",
+    "description": "Arnaud Legoux Moving Average focuses on smoothing while reducing lag.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 9
+      }
+    ],
+    "lines": [
+      { "name": "alma_line", "display_name": "ALMA" }
+    ]
+  },
+
+  {
+    "name": "hma",
+    "display_name": "HMA",
+    "description": "Hull Moving Average aims to remove lag altogether and improve smoothness.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 14
+      }
+    ],
+    "lines": [
+      { "name": "hma_line", "display_name": "HMA" }
+    ]
+  },
+
+  {
+    "name": "zlema",
+    "display_name": "ZLEMA",
+    "description": "Zero Lag EMA tries to remove lag by subtracting price changes calculated from the raw price data.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 14
+      }
+    ],
+    "lines": [
+      { "name": "zlema_line", "display_name": "ZLEMA" }
+    ]
+  },
+
+  {
+    "name": "qstick",
+    "display_name": "QSTICK",
+    "description": "QSTICK is an average of the difference between close and open, measuring price momentum.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 8
+      }
+    ],
+    "lines": [
+      { "name": "qstick_line", "display_name": "QSTICK" }
+    ]
+  },
+
+  {
+    "name": "vortex",
+    "display_name": "Vortex",
+    "description": "Vortex uses the relationship of up/down trends based on highs and lows to identify trend reversals.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 14
+      }
+    ],
+    "lines": [
+      { "name": "plus", "display_name": "Vortex Plus" },
+      { "name": "minus", "display_name": "Vortex Minus" }
+    ]
+  },
+
+  {
+    "name": "ichimoku",
+    "display_name": "Ichimoku",
+    "description": "Ichimoku Cloud system uses multiple lines to gauge momentum and future support/resistance.",
+    "parameters": [
+      {
+        "name": "tenkan",
+        "display_name": "Tenkan Period",
+        "param_type": "int",
+        "required": true,
+        "default_value": 9
+      },
+      {
+        "name": "kijun",
+        "display_name": "Kijun Period",
+        "param_type": "int",
+        "required": true,
+        "default_value": 26
+      },
+      {
+        "name": "senkou",
+        "display_name": "Senkou Period",
+        "param_type": "int",
+        "required": true,
+        "default_value": 52
+      }
+    ],
+    "lines": [
+      { "name": "tenkan_sen", "display_name": "Tenkan Sen" },
+      { "name": "kijun_sen", "display_name": "Kijun Sen" },
+      { "name": "senkou_a", "display_name": "Senkou A" },
+      { "name": "senkou_b", "display_name": "Senkou B" },
+      { "name": "chikou_span", "display_name": "Chikou Span" }
+    ]
+  },
+
+  {
+    "name": "donchian",
+    "display_name": "Donchian Channels",
+    "description": "Donchian Channels identify the highest high and lowest low over a set period.",
+    "parameters": [
+      {
+        "name": "lower_length",
+        "display_name": "Lower Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 20
+      },
+      {
+        "name": "upper_length",
+        "display_name": "Upper Length",
+        "param_type": "int",
+        "required": false,
+        "default_value": 20
+      }
+    ],
+    "lines": [
+      { "name": "upper", "display_name": "Upper" },
+      { "name": "middle", "display_name": "Middle" },
+      { "name": "lower", "display_name": "Lower" }
+    ]
+  },
+
+  {
+    "name": "lrc",
+    "display_name": "LRC",
+    "description": "Linear Regression Channel plots a main regression line and optional upper/lower channels.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 100
+      },
+      {
+        "name": "alpha",
+        "display_name": "Alpha",
+        "param_type": "float",
+        "required": true,
+        "default_value": 2.0
+      }
+    ],
+    "lines": [
+      { "name": "regression", "display_name": "Regression" },
+      { "name": "upper", "display_name": "Upper Channel" },
+      { "name": "lower", "display_name": "Lower Channel" }
+    ]
+  },
+
+  {
+    "name": "mama",
+    "display_name": "MAMA",
+    "description": "MESA Adaptive Moving Average dynamically adjusts based on market speed.",
+    "parameters": [
+      {
+        "name": "fastlimit",
+        "display_name": "Fast Limit",
+        "param_type": "float",
+        "required": true,
+        "default_value": 0.5
+      },
+      {
+        "name": "slowlimit",
+        "display_name": "Slow Limit",
+        "param_type": "float",
+        "required": true,
+        "default_value": 0.05
+      }
+    ],
+    "lines": [
+      { "name": "mama_line", "display_name": "MAMA" },
+      { "name": "fama_line", "display_name": "FAMA" }
+    ]
+  },
+
+  {
+    "name": "ppo",
+    "display_name": "PPO",
+    "description": "Percentage Price Oscillator is a MACD variation showing the percentage difference of two EMAs.",
+    "parameters": [
+      {
+        "name": "fast",
+        "display_name": "Fast Period",
+        "param_type": "int",
+        "required": true,
+        "default_value": 12
+      },
+      {
+        "name": "slow",
+        "display_name": "Slow Period",
+        "param_type": "int",
+        "required": true,
+        "default_value": 26
+      },
+      {
+        "name": "signal",
+        "display_name": "Signal Period",
+        "param_type": "int",
+        "required": true,
+        "default_value": 9
+      }
+    ],
+    "lines": [
+      { "name": "ppo_line", "display_name": "PPO" },
+      { "name": "signal_line", "display_name": "Signal" },
+      { "name": "histogram", "display_name": "Histogram" }
+    ]
+  },
+
+  {
+    "name": "fisher",
+    "display_name": "Fisher Transform",
+    "description": "Fisher transform attempts to make price more normally distributed, emphasizing turning points.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 9
+      }
+    ],
+    "lines": [
+      { "name": "fisher_line", "display_name": "Fisher" },
+      { "name": "signal_line", "display_name": "Signal" }
+    ]
+  },
+
+  {
+    "name": "cmf",
+    "display_name": "CMF",
+    "description": "Chaikin Money Flow uses volume and price to measure buying and selling pressure.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 20
+      }
+    ],
+    "lines": [
+      { "name": "cmf_line", "display_name": "CMF" }
+    ]
+  },
+
+  {
+    "name": "ad",
+    "display_name": "Accumulation/Distribution",
+    "description": "Accumulation/Distribution line uses both price and volume to identify divergences.",
+    "parameters": [],
+    "lines": [
+      { "name": "ad_line", "display_name": "AD" }
+    ]
+  },
+
+  {
+    "name": "bop",
+    "display_name": "Balance of Power",
+    "description": "BOP measures the strength of buying vs. selling by analyzing open, high, low, and close.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": false,
+        "default_value": 0
+      }
+    ],
+    "lines": [
+      { "name": "bop_line", "display_name": "BOP" }
+    ]
+  },
+
+  {
+    "name": "cvi",
+    "display_name": "CVI (Choppiness Index)",
+    "description": "CVI quantifies the choppiness or trendiness of price action over a specific period.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 14
+      }
+    ],
+    "lines": [
+      { "name": "cvi_line", "display_name": "CVI" }
+    ]
+  },
+
+  {
+    "name": "t3",
+    "display_name": "T3 Moving Average",
+    "description": "T3 is a smoother, adaptive moving average with less lag than standard MAs.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 10
+      },
+      {
+        "name": "b",
+        "display_name": "Smoothing Factor",
+        "param_type": "float",
+        "required": true,
+        "default_value": 0.7
+      }
+    ],
+    "lines": [
+      { "name": "t3_line", "display_name": "T3" }
+    ]
+  },
+
+  {
+    "name": "efi",
+    "display_name": "Elder Force Index",
+    "description": "EFI uses volume and price change to measure the force or power behind a price move.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 13
+      }
+    ],
+    "lines": [
+      { "name": "efi_line", "display_name": "EFI" }
+    ]
+  },
+
+  {
+    "name": "wad",
+    "display_name": "Williams AD",
+    "description": "Williams Accumulation/Distribution is similar to AD but uses a different calculation approach.",
+    "parameters": [],
+    "lines": [
+      { "name": "wad_line", "display_name": "WAD" }
+    ]
+  },
+
+  {
+    "name": "slope",
+    "display_name": "Slope",
+    "description": "Calculates the slope of a linear regression for recent closes.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 5
+      }
+    ],
+    "lines": [
+      { "name": "slope_line", "display_name": "Slope" }
+    ]
+  },
+
+  {
+    "name": "natr",
+    "display_name": "NATR",
+    "description": "Normalized Average True Range is ATR scaled by the close price.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 14
+      }
+    ],
+    "lines": [
+      { "name": "natr_line", "display_name": "NATR" }
+    ]
+  },
+
+  {
+    "name": "tema",
+    "display_name": "TEMA",
+    "description": "Triple Exponential Moving Average aims to remove lag from EMA calculations.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 14
+      }
+    ],
+    "lines": [
+      { "name": "tema_line", "display_name": "TEMA" }
+    ]
+  },
+
+  {
+    "name": "kc",
+    "display_name": "Keltner Channels",
+    "description": "Keltner Channels use ATR-based bands around an EMA for envelope trading.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 20
+      },
+      {
+        "name": "scalar",
+        "display_name": "Scalar",
+        "param_type": "float",
+        "required": true,
+        "default_value": 2.0
+      },
+      {
+        "name": "mamode",
+        "display_name": "MA Mode",
+        "param_type": "string",
+        "required": false,
+        "default_value": "ema"
+      }
+    ],
+    "lines": [
+      { "name": "upper", "display_name": "KC Upper" },
+      { "name": "middle", "display_name": "KC Middle" },
+      { "name": "lower", "display_name": "KC Lower" }
+    ]
+  },
+
+  {
+    "name": "ewo",
+    "display_name": "EWO",
+    "description": "Elliott Wave Oscillator is a MACD variant using custom short/long periods (e.g., 5,35).",
+    "parameters": [
+      {
+        "name": "fast",
+        "display_name": "Fast Period",
+        "param_type": "int",
+        "required": true,
+        "default_value": 5
+      },
+      {
+        "name": "slow",
+        "display_name": "Slow Period",
+        "param_type": "int",
+        "required": true,
+        "default_value": 35
+      }
+    ],
+    "lines": [
+      { "name": "ewo_line", "display_name": "EWO" }
+    ]
+  },
+
+  {
+    "name": "crsi",
+    "display_name": "Connors RSI",
+    "description": "Connors RSI is a composite of RSI, UpDown streak, and an SMA-based RSI for streak changes.",
+    "parameters": [
+      {
+        "name": "rsi_length",
+        "display_name": "RSI Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 3
+      },
+      {
+        "name": "streak_length",
+        "display_name": "Streak Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 2
+      },
+      {
+        "name": "ma_length",
+        "display_name": "MA Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 100
+      }
+    ],
+    "lines": [
+      { "name": "crsi_line", "display_name": "CRSI" }
+    ]
+  },
+
+  {
+    "name": "zscore",
+    "display_name": "ZScore",
+    "description": "Z-Score of closing price, highlighting how many stddevs away from the rolling mean price is.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 30
+      }
+    ],
+    "lines": [
+      { "name": "zscore_line", "display_name": "ZScore" }
+    ]
+  },
+
+  {
+    "name": "rvi",
+    "display_name": "RVI",
+    "description": "Relative Volatility Index uses standard deviations to measure volatility-based momentum.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 14
+      }
+    ],
+    "lines": [
+      { "name": "rvi_line", "display_name": "RVI" }
+    ]
+  },
+
+  {
+    "name": "bbw",
+    "display_name": "Bollinger Bandwidth",
+    "description": "BBW measures the bandwidth between the Bollinger Bands to quantify volatility.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 20
+      },
+      {
+        "name": "std",
+        "display_name": "Std Dev",
+        "param_type": "float",
+        "required": true,
+        "default_value": 2.0
+      }
+    ],
+    "lines": [
+      { "name": "bbw_line", "display_name": "BBW" }
+    ]
+  },
+
+  {
+    "name": "gannhilo",
+    "display_name": "GANNHiLo",
+    "description": "Gann HiLo Activator uses previous high/low values to indicate possible trend changes.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 10
+      }
+    ],
+    "lines": [
+      { "name": "hi", "display_name": "GANN Hi" },
+      { "name": "lo", "display_name": "GANN Lo" }
+    ]
+  },
+
+  {
+    "name": "qqe",
+    "display_name": "QQE",
+    "description": "Quantitative Qualitative Estimation is a smoothed RSI approach generating main and lower lines.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 14
+      },
+      {
+        "name": "smooth",
+        "display_name": "Smooth",
+        "param_type": "int",
+        "required": true,
+        "default_value": 5
+      }
+    ],
+    "lines": [
+      { "name": "main", "display_name": "QQE Main" },
+      { "name": "lower", "display_name": "QQE Lower" }
+    ]
+  },
+
+  {
+    "name": "tsf",
+    "display_name": "TSF",
+    "description": "Time Series Forecast is a linear regression-based forecast of the next bar.",
+    "parameters": [
+      {
+        "name": "length",
+        "display_name": "Length",
+        "param_type": "int",
+        "required": true,
+        "default_value": 14
+      }
+    ],
+    "lines": [
+      { "name": "tsf_line", "display_name": "TSF" }
+    ]
+  }
 ]

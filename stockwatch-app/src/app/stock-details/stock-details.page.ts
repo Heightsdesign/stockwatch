@@ -74,7 +74,6 @@ export class StockDetailsPage implements OnInit {
       // Fields for Percentage Change Alert
       reference_price: [''],
       lookback_period: [''],
-      custom_lookback_days: [''],
       direction: ['UP'],
       percentage_change: [''],
 
@@ -289,7 +288,6 @@ onValueIndicatorChange(event: any, conditionIndex: number) {
       'condition', // **Added:** Include condition in reset
       'reference_price',
       'lookback_period',
-      'custom_lookback_days',
       'direction',
       'percentage_change',
       'check_interval', // **Added:** Reset check_interval if necessary
@@ -364,34 +362,40 @@ onValueIndicatorChange(event: any, conditionIndex: number) {
 
     createAlertObservable.subscribe(
       async () => {
-        // success handling
         console.log('Alert updated successfully');
-          const successAlert = await this.alertController.create({
-            header: 'Success',
-            message: 'Alert updated successfully.',
-            buttons: ['OK'],
-          });
-          await successAlert.present();
+        const successAlert = await this.alertController.create({
+          header: 'Success',
+          message: 'Alert updated successfully.',
+          buttons: ['OK'],
+        });
+        await successAlert.present();
+        await loading.dismiss();
+        this.router.navigate(['/home']);
       },
 
       async (error) => {
+        await loading.dismiss();
         console.error('Error creating alert:', error);
 
+        let errorMessage = 'Failed to create alert.';
+
         if (error.status === 400 && error.error) {
-          // 1) Possibly handle top-level fields if you have them
-          if (error.error.check_interval) {
+          // Handle top-level error messages
+          if (error.error.detail) {
+            errorMessage = error.error.detail;
+          } else if (error.error.check_interval) {
             this.alertForm.get('check_interval')?.setErrors({
               customError: error.error.check_interval.join(' '),
             });
+            errorMessage = 'Please correct the highlighted fields.';
           }
 
-          // 2) Now handle conditions array
+          // Handle conditions array errors
           if (Array.isArray(error.error.conditions)) {
             error.error.conditions.forEach((condErr: any, idx: number) => {
-              // condErr might be { "length": ["Maximum allowed length is 400."] }
               const conditionGroup = this.conditions.at(idx) as FormGroup;
 
-              // If 'length' key is present
+              // Apply errors to specific fields within the condition group
               if (condErr.length) {
                 const lengthCtrl = conditionGroup.get('parameters')?.get('length');
                 if (lengthCtrl) {
@@ -399,24 +403,28 @@ onValueIndicatorChange(event: any, conditionIndex: number) {
                 }
               }
 
-              // If there are other keys, handle them similarly...
+              Object.keys(condErr).forEach((key) => {
+                const control = conditionGroup.get(key);
+                if (control) {
+                  control.setErrors({ customError: condErr[key].join(' ') });
+                }
+              });
             });
+            errorMessage = 'Please correct the highlighted fields in conditions.';
           }
 
-          // Show a top-level alert if you like
+          // Show a validation error alert with the specific message
           const alertPopup = await this.alertController.create({
             header: 'Validation Error',
-            message: 'Please correct the highlighted fields.',
+            message: errorMessage,
             buttons: ['OK'],
           });
           await alertPopup.present();
-          await loading.dismiss();
-
         } else {
-          // Non-400 error
+          // Handle non-400 errors
           const errorAlert = await this.alertController.create({
             header: 'Error',
-            message: 'Failed to create alert.',
+            message: errorMessage,
             buttons: ['OK'],
           });
           await errorAlert.present();
@@ -451,8 +459,6 @@ onValueIndicatorChange(event: any, conditionIndex: number) {
           percentage_change: formValues.percentage_change,
           direction: formValues.direction,
           lookback_period: formValues.lookback_period,
-          custom_lookback_days:
-            formValues.lookback_period === 'CUSTOM' ? formValues.custom_lookback_days : null,
         };
       case 'INDICATOR_CHAIN':
         return {
@@ -531,18 +537,6 @@ onValueIndicatorChange(event: any, conditionIndex: number) {
     }
   }
   private applyInlineErrors(errorObj: any) {
-    // Suppose the DRF error might look like:
-    // {
-    //   "conditions": {
-    //     "0": {
-    //       "indicator_parameters": {
-    //         "length": ["Max is 400"]
-    //       }
-    //     }
-    //   }
-    //   "check_interval": ["Must be >= 1"]
-    //   ...
-    // }
 
     // 1) Top-level fields
     if (errorObj.check_interval && Array.isArray(errorObj.check_interval)) {

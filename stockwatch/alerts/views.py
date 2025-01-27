@@ -69,6 +69,7 @@ class PercentageChangeAlertViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return PercentageChangeAlert.objects.filter(alert__user=self.request.user)
 
+
 class IndicatorChainAlertViewSet(viewsets.ModelViewSet):
     serializer_class = IndicatorChainAlertSerializer
     permission_classes = [IsAuthenticated]
@@ -161,6 +162,7 @@ class UserAlertDetailView(generics.RetrieveUpdateDestroyAPIView):
 class IndicatorDefinitionListView(generics.ListAPIView):
     queryset = IndicatorDefinition.objects.all()
     serializer_class = IndicatorDefinitionSerializer
+
 """
 class SendNotificationView(APIView):
     permission_classes = [IsAuthenticated]

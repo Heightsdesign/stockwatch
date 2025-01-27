@@ -1,5 +1,8 @@
 # alerts/serializers.py
 
+from django.conf import settings
+from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from .models import (
@@ -18,10 +21,35 @@ from .models import (
 User = get_user_model()
 
 
+def enforce_plan_limit(user, requested_alert_type):
+    print("=== DEBUG enforce_plan_limit ===")
+    print("User ID:", user.id)
+    print("User subscription_plan:", user.subscription_plan)
+
+    plan_key = settings.TIER_TO_PLAN.get(user.subscription_plan, 'FREE')
+    plan_info = settings.PLAN_LIMITS.get(plan_key, {})
+    print("Plan info:", plan_info)
+
+    max_alerts = plan_info.get('max_alerts', 0)
+    allow_chain = plan_info.get('allow_indicator_chain', False)
+    print("max_alerts:", max_alerts, " allow_chain:", allow_chain)
+
+    current_total_alerts = Alert.objects.filter(user=user).count()
+    print("current_total_alerts:", current_total_alerts)
+
+    if requested_alert_type == 'INDICATOR_CHAIN' and not allow_chain:
+        raise DRFValidationError({"detail": "Your subscription plan does not allow Indicator Chain alerts."})
+
+    if current_total_alerts >= max_alerts:
+        raise DRFValidationError(
+            {
+                "detail": f"You have reached the maximum number of alerts allowed for your subscription plan ({max_alerts})."}
+        )
 class StockSerializer(serializers.ModelSerializer):
     class Meta:
         model = Stock
         fields = ['symbol', 'name']
+
 
 class AlertSerializer(serializers.ModelSerializer):
     stock_details = serializers.SerializerMethodField()
@@ -70,8 +98,6 @@ class AlertSerializer(serializers.ModelSerializer):
         instance.last_triggered_at = validated_data.get('last_triggered_at', instance.last_triggered_at)
         instance.save()
         return instance
-
-    # ... other methods ...
 
     def get_price_target_alert(self, obj):
         try:
@@ -148,6 +174,8 @@ class PriceTargetAlertSerializer(serializers.ModelSerializer):
         check_interval = validated_data.get('check_interval')
         is_active = validated_data.get('alert', {}).get('is_active', True)
 
+        enforce_plan_limit(user, requested_alert_type='PRICE')
+
         # Create the Alert instance
         alert = Alert.objects.create(
             user=user,
@@ -167,14 +195,22 @@ class PriceTargetAlertSerializer(serializers.ModelSerializer):
         return price_target_alert
 
     def update(self, instance, validated_data):
+
+        # Update Alert-specific field 'is_active' if provided
+        is_active = validated_data.get('alert', {}).get('is_active')
+
+        # If the user is trying to reactivate the alert, check plan limits
+        if is_active and not instance.alert.is_active:
+            user = self.context['request'].user
+            enforce_plan_limit(user, 'PRICE')
+
         # Update PriceTargetAlert-specific fields
         instance.target_price = validated_data.get('target_price', instance.target_price)
         instance.condition = validated_data.get('condition', instance.condition)
         instance.check_interval = validated_data.get('check_interval', instance.check_interval)
         instance.save()
 
-        # Update Alert-specific field 'is_active' if provided
-        is_active = validated_data.get('alert', {}).get('is_active')
+
         if is_active is not None:
             instance.alert.is_active = is_active
             instance.alert.save()
@@ -199,7 +235,6 @@ class PercentageChangeAlertSerializer(serializers.ModelSerializer):
             'stock',
             'stock_details',
             'lookback_period',
-            'custom_lookback_days',
             'direction',
             'percentage_change',
             'check_interval',
@@ -227,6 +262,8 @@ class PercentageChangeAlertSerializer(serializers.ModelSerializer):
         direction = validated_data['direction']
         check_interval = validated_data.get('check_interval', 60)  # Default to 60 if not provided
 
+        enforce_plan_limit(user, requested_alert_type='PERCENTAGE_CHANGE')
+
         # Create the Alert instance
         alert = Alert.objects.create(
             user=user,
@@ -240,7 +277,6 @@ class PercentageChangeAlertSerializer(serializers.ModelSerializer):
             alert=alert,
             percentage_change=percentage_change,
             lookback_period=lookback_period,
-            custom_lookback_days=custom_lookback_days,
             direction=direction,
             check_interval=check_interval,
         )
@@ -248,6 +284,14 @@ class PercentageChangeAlertSerializer(serializers.ModelSerializer):
         return percentage_change_alert
 
     def update(self, instance, validated_data):
+
+        is_active = validated_data.get('alert', {}).get('is_active', instance.alert.is_active)
+
+        # If the user is trying to reactivate the alert, check plan limits
+        if is_active and not instance.alert.is_active:
+            user = self.context['request'].user
+            enforce_plan_limit(user, 'PERCENTAGE_CHANGE')
+
         # Update PercentageChangeAlert-specific fields
         instance.lookback_period = validated_data.get('lookback_period', instance.lookback_period)
         instance.custom_lookback_days = validated_data.get('custom_lookback_days', instance.custom_lookback_days)
@@ -256,8 +300,6 @@ class PercentageChangeAlertSerializer(serializers.ModelSerializer):
         instance.check_interval = validated_data.get('check_interval', instance.check_interval)
         instance.save()
 
-        # Update Alert-specific field 'is_active' if provided
-        is_active = validated_data.get('is_active')
         if is_active is not None:
             instance.alert.is_active = is_active
             instance.alert.save()
@@ -279,6 +321,7 @@ class IndicatorLineSerializer(serializers.ModelSerializer):
     class Meta:
         model = IndicatorLine
         fields = ['name', 'display_name']
+
 
 class IndicatorSerializer(serializers.ModelSerializer):
     lines = IndicatorLineSerializer(many=True, read_only=True)
@@ -402,12 +445,15 @@ class IndicatorChainAlertSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
     def create(self, validated_data):
+
         conditions_data = validated_data.pop('conditions')
         check_interval = validated_data.pop('check_interval', 60)
         stock = validated_data.pop('stock')
         is_active = validated_data.pop('is_active', True)
 
         user = self.context['request'].user
+
+        enforce_plan_limit(user, 'INDICATOR_CHAIN')
 
         # Create the Alert instance
         alert = Alert.objects.create(
@@ -433,6 +479,13 @@ class IndicatorChainAlertSerializer(serializers.ModelSerializer):
         return indicator_chain_alert
 
     def update(self, instance, validated_data):
+        user = self.context['request'].user
+        is_active = validated_data.get('is_active', instance.alert.is_active)
+
+        # Enforce plan limits when reactivating the alert
+        if is_active and not instance.alert.is_active:
+            enforce_plan_limit(user, requested_alert_type='INDICATOR_CHAIN')
+
         conditions_data = validated_data.pop('conditions', None)
         stock = validated_data.get('stock', None)
         is_active = validated_data.get('is_active')
@@ -464,6 +517,7 @@ class IndicatorParameterSerializer(serializers.ModelSerializer):
     class Meta:
         model = IndicatorParameter
         fields = ['name', 'display_name', 'param_type', 'required', 'default_value', 'choices']
+
 
 class IndicatorDefinitionSerializer(serializers.ModelSerializer):
     parameters = IndicatorParameterSerializer(many=True, read_only=True)

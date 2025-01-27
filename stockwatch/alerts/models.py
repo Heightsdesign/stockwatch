@@ -59,16 +59,16 @@ class PriceTargetAlert(models.Model):
 
 class PercentageChangeAlert(models.Model):
     TIMEFRAME_CHOICES = [
-        ('5min', '5 Minutes'),
-        ('15min', '15 Minutes'),
-        ('30min', '30 Minutes'),
-        ('1h', '1 Hour'),
-        ('4h', '4 Hours'),
-        ('1d', '1 Day'),
-        ('1w', '1 Week'),
-        ('2w', '2 Weeks'),
-        ('1mo', '1 Month'),
-        ('3mo', '3 Months'),
+        ('5MIN', '5 Minutes'),
+        ('15MIN', '15 Minutes'),
+        ('30MIN', '30 Minutes'),
+        ('1H', '1 Hour'),
+        ('4H', '4 Hours'),
+        ('1D', '1 Day'),
+        ('1W', '1 Week'),
+        ('2W', '2 Weeks'),
+        ('1MO', '1 Month'),
+        ('3MO', '3 Months'),
     ]
 
     alert = models.OneToOneField(Alert, on_delete=models.CASCADE, related_name='percentage_change')
@@ -103,6 +103,7 @@ class IndicatorDefinition(models.Model):
     def __str__(self):
         return self.display_name
 
+
 class IndicatorParameter(models.Model):
     PARAMETER_TYPE_CHOICES = [
         ('int', 'Integer'),
@@ -133,6 +134,7 @@ class Indicator(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class IndicatorLine(models.Model):
     indicator = models.ForeignKey(

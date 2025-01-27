@@ -48,12 +48,12 @@ def send_alert_notification(alert, current_value):
         email_context["current_value"] = current_value
         subject = f"Stock Alert: Percentage Change for {stock.symbol}"
     elif alert.alert_type == "INDICATOR_CHAIN":
-        conditions = alert.indicator_chain_alert.conditions.all()
+        conditions = alert.indicator_chain.conditions.all()
         condition_results = []
         for condition in conditions:
             result = {
                 "indicator": condition.indicator.name,
-                "line": condition.indicator_line.display_name,
+                "line": condition.indicator_line,
                 "timeframe": condition.indicator_timeframe,
                 "operator": condition.condition_operator,
                 "value_type": condition.value_type,
@@ -63,7 +63,7 @@ def send_alert_notification(alert, current_value):
             elif condition.value_type == "INDICATOR_LINE":
                 result["value"] = {
                     "indicator": condition.value_indicator.name,
-                    "line": condition.value_indicator_line.display_name,
+                    "line": condition.value_indicator_line,
                     "timeframe": condition.value_timeframe,
                 }
             condition_results.append(result)
@@ -196,7 +196,7 @@ def process_single_alert(alert):
         data = get_stock_data(alert.stock.symbol, ...) # timeframe based on alert config
         process_percentage_change_alert(alert, data)
     elif alert.alert_type == 'INDICATOR_CHAIN':
-        # No data fetched here. Let process_indicator_chain_alert handle it.
+        # No data fetched here. Let process_indicator_chain handle it.
         process_indicator_chain_alert(alert)
 
 

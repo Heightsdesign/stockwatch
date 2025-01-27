@@ -521,7 +521,8 @@ loadIndicatorDataForCondition(index: number, condition: any) {
           buttons: ['OK'],
         });
         await successAlert.present();
-        this.router.navigate(['/alert-detail', this.alertId]);
+         // Redirect to home page after success
+        this.router.navigate(['/home']);
       },
       async (error) => {
         console.error('Error updating alert:', error);
@@ -577,7 +578,7 @@ loadIndicatorDataForCondition(index: number, condition: any) {
             });
           }
 
-          // Show a validation error modal
+          // Show a validation error model
           const errorAlert = await this.alertController.create({
             header: 'Validation Error',
             message: 'Please correct the highlighted fields.',

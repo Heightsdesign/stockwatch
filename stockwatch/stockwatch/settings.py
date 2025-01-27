@@ -207,6 +207,30 @@ CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:8100',
 ]
 
+
+TIER_TO_PLAN = {
+    'tier0': 'FREE',
+    'tier1': 'SILVER',
+    'tier2': 'GOLD',
+}
+
+PLAN_LIMITS = {
+    'FREE': {
+        'max_alerts': 3,
+        'allow_indicator_chain': False,
+    },
+    'SILVER': {
+        'max_alerts': 10,
+        'allow_indicator_chain': True,
+    },
+    'GOLD': {
+        'max_alerts': 50,
+        'allow_indicator_chain': True,
+    },
+}
+
+
+
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # Allauth settings
 ACCOUNT_EMAIL_REQUIRED = True

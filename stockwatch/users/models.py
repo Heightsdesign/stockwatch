@@ -21,7 +21,6 @@ class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
     phone_number = PhoneNumberField(blank=True, null=True)
     username = models.CharField(max_length=150, unique=True)
-    subscription_plan = models.CharField(max_length=5, default="tier0")
     is_email_verified = models.BooleanField(default=False)
     is_phone_verified = models.BooleanField(default=False)
     phone_verification_code = models.CharField(max_length=6, null=True, blank=True)
@@ -30,6 +29,15 @@ class CustomUser(AbstractUser):
     receive_sms_notifications = models.BooleanField(default=False)
     receive_push_notifications = models.BooleanField(default=True)
     receive_direct_messages = models.BooleanField(default=True)
+    subscription_plan = models.CharField(
+        max_length=10,
+        choices=[
+            ('tier0', 'Free'),
+            ('tier1', 'Silver'),
+            ('tier2', 'Gold'),
+        ],
+        default='tier0'
+    )
 
     def __str__(self):
         return self.username
