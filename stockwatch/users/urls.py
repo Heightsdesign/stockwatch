@@ -1,4 +1,5 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from .views import (
     CustomAuthToken,
     UserProfileView,
@@ -10,7 +11,13 @@ from .views import (
     CustomRegisterView,
     ResendEmailVerificationView,
     ResendPhoneVerificationView,
+    ContactView,
+    SubscriptionPlanViewSet
 )
+
+
+router = DefaultRouter()
+router.register(r'subscription_plans', SubscriptionPlanViewSet, basename='subscription_plans')
 
 urlpatterns = [
     path('api-token-auth/', CustomAuthToken.as_view(), name='api_token_auth'),
@@ -23,4 +30,5 @@ urlpatterns = [
     path('registration/', CustomRegisterView.as_view(), name='custom-registration'),
     path('resend-phone-verification/', ResendPhoneVerificationView.as_view(), name='resend-phone-verification'),
     path('resend-email-verification/', ResendEmailVerificationView.as_view(), name='resend-email-verification'),
+    path('contact/', ContactView.as_view(), name='contact'),
 ]

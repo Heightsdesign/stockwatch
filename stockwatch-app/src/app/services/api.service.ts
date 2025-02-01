@@ -130,4 +130,12 @@ export class ApiService {
     return this.http.post(`${this.credsUrl}/resend-phone-verification/`, {});
   }
 
+  sendContactMessage(formValue: { name: string; email: string; message: string; }) {
+    return this.http.post('/api/contact/', formValue).toPromise();
+  }
+
+  getSubscriptionPlans() {
+    return this.http.get<any[]>('/api/subscription-plans/');
+  }
+
 }

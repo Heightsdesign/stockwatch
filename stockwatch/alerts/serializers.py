@@ -24,9 +24,9 @@ User = get_user_model()
 def enforce_plan_limit(user, requested_alert_type):
     print("=== DEBUG enforce_plan_limit ===")
     print("User ID:", user.id)
-    print("User subscription_plan:", user.subscription_plan)
+    print("User subscription_plan:", user.subscription_plan.tier)
 
-    plan_key = settings.TIER_TO_PLAN.get(user.subscription_plan, 'FREE')
+    plan_key = settings.TIER_TO_PLAN.get(user.subscription_plan.tier, 'tier0')
     plan_info = settings.PLAN_LIMITS.get(plan_key, {})
     print("Plan info:", plan_info)
 

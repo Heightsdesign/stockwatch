@@ -2,7 +2,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
-from rest_framework import generics, status
+from rest_framework import generics, status, viewsets
 from rest_framework.views import APIView
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.shortcuts import get_object_or_404
@@ -15,16 +15,19 @@ from dj_rest_auth.registration.views import RegisterView
 
 import logging
 
-from .models import CustomUser, Country, UserDevice
+from .models import CustomUser, Country, UserDevice, SubscriptionPlan
 from .serializers import (
     UserProfileSerializer,
     CountrySerializer,
     UserDeviceSerializer,
     CustomRegisterSerializer,
     VerifyPhoneSerializer,
+    SubscriptionPlanSerializer
 )
 from .throttles import VerificationThrottle
 from alerts.notifications import send_email_notification, send_sms_notification
+from django.conf import settings
+
 
 logger = logging.getLogger(__name__)
 
@@ -253,3 +256,28 @@ class ResendPhoneVerificationView(APIView):
         logger.debug(f"ResendPhoneVerificationView: Sent verification SMS to {user.phone_number}.")
 
         return Response({"detail": "Verification code resent via SMS."}, status=status.HTTP_200_OK)
+
+
+class ContactView(APIView):
+    def post(self, request):
+        name = request.data.get('name')
+        email = request.data.get('email')
+        message = request.data.get('message')
+
+        # Optionally save to DB
+        # ContactMessage.objects.create(name=name, email=email, message=message)
+
+        # Send an email if desired
+        send_mail(
+            subject=f"Contact form from {name}",
+            message=f"Message from {name} ({email}):\n\n{message}",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[settings.CONTACT_EMAIL],
+        )
+
+        return Response({'detail': 'Message sent successfully'}, status=status.HTTP_200_OK)
+
+
+class SubscriptionPlanViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = SubscriptionPlan.objects.all()
+    serializer_class = SubscriptionPlanSerializer

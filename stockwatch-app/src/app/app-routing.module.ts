@@ -55,6 +55,14 @@ const routes: Routes = [
     path: 'phone-verification',
     loadChildren: () => import('./phone-verification/phone-verification.module').then( m => m.PhoneVerificationPageModule)
   },
+  {
+    path: 'contact',
+    loadChildren: () => import('./contact/contact.module').then( m => m.ContactPageModule)
+  },
+  {
+    path: 'subscription-plans',
+    loadChildren: () => import('./subscription-plans/subscription-plans.module').then( m => m.SubscriptionPlansPageModule)
+  },
 
 ];
 

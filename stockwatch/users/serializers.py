@@ -4,9 +4,8 @@ import logging
 import random
 
 from alerts.notifications import send_sms_notification
-from .models import UserDevice
-from .models import CustomUser
-from .models import Country
+from .models import UserDevice, CustomUser, Country, SubscriptionPlan
+
 
 logger = logging.getLogger(__name__)
 
@@ -165,3 +164,8 @@ class SendPhoneVerificationSerializer(serializers.Serializer):
 
 class VerifyPhoneSerializer(serializers.Serializer):
     code = serializers.CharField(max_length=6)
+
+class SubscriptionPlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubscriptionPlan
+        fields = '__all__'
