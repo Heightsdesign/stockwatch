@@ -12,6 +12,7 @@ import { Stock } from '../models/stock.model';
 export class ApiService {
   private apiUrl = 'http://localhost:8000/api';
   private credsUrl = 'http://localhost:8000/creds';
+  private billingUrl = 'http://localhost:8000/billing';
 
   constructor(private http: HttpClient) {}
 
@@ -135,7 +136,17 @@ export class ApiService {
   }
 
   getSubscriptionPlans() {
-    return this.http.get<any[]>('/api/subscription-plans/');
+    return this.http.get<any[]>(`${this.credsUrl}/subscription_plans/`);
+  }
+
+    // e.g. to get client token
+  getBraintreeClientToken(): Observable<{ client_token: string }> {
+    return this.http.get<{ client_token: string }>(`${this.billingUrl}/braintree/client_token/`);
+  }
+
+  // e.g. to create a transaction
+  checkoutBraintree(data: { amount: number, payment_method_nonce: string }) {
+    return this.http.post(`${this.billingUrl}/braintree/checkout/`, data);
   }
 
 }

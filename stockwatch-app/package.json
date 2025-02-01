@@ -29,6 +29,8 @@
     "@capacitor/keyboard": "6.0.3",
     "@capacitor/status-bar": "6.0.2",
     "@ionic/angular": "^8.0.0",
+    "braintree-web": "^3.115.0",
+    "braintree-web-drop-in": "^1.44.0",
     "firebase": "^11.1.0",
     "ionicons": "^7.0.0",
     "rxjs": "~7.8.0",

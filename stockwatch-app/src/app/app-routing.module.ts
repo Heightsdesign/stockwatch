@@ -63,6 +63,10 @@ const routes: Routes = [
     path: 'subscription-plans',
     loadChildren: () => import('./subscription-plans/subscription-plans.module').then( m => m.SubscriptionPlansPageModule)
   },
+  {
+    path: 'payment',
+    loadChildren: () => import('./payment/payment.module').then( m => m.PaymentPageModule)
+  },
 
 ];
 

@@ -31,4 +31,5 @@ urlpatterns = [
     path('resend-phone-verification/', ResendPhoneVerificationView.as_view(), name='resend-phone-verification'),
     path('resend-email-verification/', ResendEmailVerificationView.as_view(), name='resend-email-verification'),
     path('contact/', ContactView.as_view(), name='contact'),
+    path('', include(router.urls)),
 ]

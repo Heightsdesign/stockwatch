@@ -108,6 +108,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'alerts',
     'users',
+    'billing',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -245,6 +246,18 @@ AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 AWS_SES_REGION_NAME = os.getenv('AWS_REGION')  # e.g., 'us-east-1'
 AWS_SES_REGION_ENDPOINT = f'email.{AWS_SES_REGION_NAME}.amazonaws.com'
+
+
+# Braintree Credentials
+BRAINTREE_ENVIRONMENT = os.getenv('BRAINTREE_ENVIRONMENT')  # or 'production'
+BRAINTREE_MERCHANT_ID = os.getenv('BRAINTREE_MERCHANT_ID')
+BRAINTREE_PUBLIC_KEY = os.getenv('BRAINTREE_PUBLIC_KEY')
+BRAINTREE_PRIVATE_KEY = os.getenv('BRAINTREE_PRIVATE_KEY')
+
+#Paypal Credentials
+PAYPAL_CLIENT_ID = os.getenv('PAYPAL_CLIENT_ID')
+PAYPAL_CLIENT_SECRET = os.getenv('PAYPAL_CLIENT_SECRET')
+
 
 # Email Backend Configuration
 EMAIL_BACKEND = 'django_ses.SESBackend'
